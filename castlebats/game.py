@@ -6,41 +6,60 @@ import pymunk
 from pymunktmx.shapeloader import load_shapes
 from pygame.locals import *
 
+from . import ui
 from . import resources
 from . import hero
 from . import sprite
 from . import config
 
+COLLISION_LAYERS = [2**i for i in range(32)]
+
 
 class Game(object):
     def __init__(self):
         self.states = []
-        self.running = False
         self.states.append(Level())
+
+        self.score = 0
+        self.lives = 0
+        self.health = 0
+        self.magic = 0
+        self.item = None
+        self.time = 0
+        self.hud_group = None
 
     def run(self):
         clock = pygame.time.Clock()
         screen = pygame.display.get_surface()
         flip = pygame.display.flip
-        self.running = True
+        hud_group = self.hud_group
+        running = True
         self.states[0].enter()
 
+        self.hud_group = pygame.sprite.RenderUpdates()
+
+        c = (255, 255, 255)
+        bg = (0, 0, 0)
+        s = ui.TextSprite(self.score, c, bg)
+
         try:
-            while self.running:
+            while running:
                 td = clock.tick(60)
                 state = self.states[0]
                 state.handle_input()
                 state.update(td)
                 state.update(td)
                 state.update(td)
+                hud_group.update()
                 state.draw(screen)
+                hud_group.draw(screen)
+                running = state.running
                 flip()
-                self.running = state.running
 
         except KeyboardInterrupt:
-            self.running = False
+            running = False
 
-        self.states[0].exit()
+        state.exit()
 
 
 class Level(object):
@@ -64,9 +83,11 @@ class Level(object):
         self.map_data = pyscroll.TiledMapData(self.tmx_data)
         self.bg = resources.images['default-bg']
 
+        self.map_height = self.map_data.height * self.map_data.tileheight
+
         self.space = pymunk.Space()
         self.space.gravity = (0, config.getfloat('world', 'gravity'))
-        shapes = load_shapes(self.tmx_data, self.space)
+        shapes = load_shapes(self.tmx_data, self.space, resources.level_xml)
 
         # load the vp group and the single vp for level drawing
         self.vpgroup = sprite.ViewPortGroup(self.space, self.map_data)
@@ -79,12 +100,15 @@ class Level(object):
         hero_coords = None
         for obj in typed_objects:
             if obj.type.lower() == "hero":
-                hero_coords = obj.x, obj.y
+                hero_coords = self.translate((obj.x, obj.y))
 
         self.hero = hero.build(self.space)
         self.hero.position = hero_coords
         self.add_actor(self.hero)
         self.vp.follow(self.hero.feet)
+
+    def translate(self, coords):
+        return pymunk.Vec2d(coords[0], self.map_height - coords[1])
 
     def enter(self):
         self.running = True
@@ -148,8 +172,15 @@ class Level(object):
     def update(self, dt):
         self.time += dt
 
-        step_amt = .00008
+        step_amt = dt / 3000.
         step = self.space.step
+        step(step_amt)
+        step(step_amt)
+        step(step_amt)
+        step(step_amt)
+        step(step_amt)
+        step(step_amt)
+        step(step_amt)
         step(step_amt)
         step(step_amt)
         step(step_amt)

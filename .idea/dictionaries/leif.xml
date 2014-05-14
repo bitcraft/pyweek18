@@ -1,10 +1,14 @@
 <component name="ProjectDictionaryState">
   <dictionary name="leif">
     <words>
+      <w>bgcolor</w>
       <w>castlebats</w>
+      <w>colorkey</w>
       <w>coords</w>
+      <w>pymunk</w>
       <w>spritesheet</w>
       <w>viewports</w>
+      <w>wireframe</w>
     </words>
   </dictionary>
 </component>
