@@ -13,12 +13,13 @@ sounds = None
 images = None
 music = None
 maps = None
+level_xml = None
 
 
 def load():
     from . import config
 
-    global sounds, images, music, maps
+    global sounds, images, music, maps, level_xml
 
     sounds = dict()
     images = dict()
@@ -27,6 +28,8 @@ def load():
 
     resource_path = config.get('paths', 'resource-path')
     resource_path = os.path.abspath(resource_path)
+
+    level_xml = _jpath(resource_path, 'maps', 'objects.xml')
 
     for name, filename in config.items('sound-files'):
         path = _jpath(resource_path, 'sounds', filename)
@@ -42,7 +45,7 @@ def load():
 
     for name, filename in config.items('map-files'):
         path = _jpath(resource_path, 'maps', filename)
-        map = pytmx.tmxloader.load_pygame(path)
+        map = pytmx.tmxloader.load_pygame(path, pixelalpha=True)
         maps[name] = map
         yield map
 

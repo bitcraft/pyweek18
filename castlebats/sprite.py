@@ -5,6 +5,7 @@ from six.moves import zip
 from pymunk.vec2d import Vec2d
 from collections import OrderedDict
 from pygame.transform import rotate, flip
+from pymunk.pygame_util import draw as pymunk_draw
 import pygame
 import pymunk
 import pyscroll
@@ -199,12 +200,28 @@ class ViewPort(pygame.sprite.Sprite):
         self.map_height = None
         self.following = None
 
+        # 0 = normal
+        # 1 = wireframe
+        # 2 = normal + wireframe overlay
+        self.draw_mode = 2
+        self.wireframe_surface = None
+
     def set_rect(self, rect):
         self.rect = rect
         md = self.parent.map_data
-        self.map_layer = pyscroll.BufferedRenderer(md, rect.size)
+        colorkey = (128, 64, 128)
+        self.map_layer = pyscroll.BufferedRenderer(
+            md, rect.size, colorkey, 2, True)
         self.map_height = md.height * md.tileheight
         self.center()
+
+        if self.draw_mode > 0:
+            md = self.parent.map_data
+            height = md.height * md.tileheight
+            width = md.width * md.width
+            self.wireframe_surface = pygame.Surface((width, height))
+            self.wireframe_surface.set_colorkey((0, 0, 0))
+            self.wireframe_surface.set_alpha(128)
 
     def add_internal(self, group):
         try:
@@ -239,19 +256,24 @@ class ViewPort(pygame.sprite.Sprite):
 
         dirty = list()
 
+        camera = self.rect.copy()
+        camera.center = self.camera_vector
+        self.camera_vector.x = camera.centerx
+        self.camera_vector.y = camera.centery
+
         ox, oy = self.rect.topleft
         self.map_layer.draw(surface, self.rect)
         xx = -self.camera_vector.x + self.map_layer.half_width + ox
         yy = -self.camera_vector.y + self.map_layer.half_height + oy
 
-        camera = self.rect.copy()
-        camera.center = self.camera_vector
+        print self.camera_vector, camera.center
 
         # deref for speed
         surface_blit = surface.blit
         dirty_append = dirty.append
         camera_collide = camera.colliderect
         map_height = self.map_height
+        wf_surface = self.wireframe_surface
 
         for sprite in self.parent.sprites():
 
@@ -264,11 +286,12 @@ class ViewPort(pygame.sprite.Sprite):
                     new_rect = new_rect.move(xx, yy)
                     dirty_rect = surface_blit(sprite.image, new_rect)
                     dirty_append(dirty_rect)
-            #elif isinstance(sprite, ViewportSpriteMixin):
-            #    sprite.update_image()
-            #    new_rect = sprite.rect.copy()
-            #    dirty_append(surface_blit(
-            #        sprite.image, new_rect.move(*self.rect.topleft)))
+
+        if self.draw_mode > 0:
+            self.wireframe_surface.set_clip(camera)
+            self.wireframe_surface.fill((0, 0, 0))
+            pymunk_draw(wf_surface, self.parent.space)
+            surface.blit(self.wireframe_surface, (xx, yy))
 
         # TODO: dirty updates
         return self.rect

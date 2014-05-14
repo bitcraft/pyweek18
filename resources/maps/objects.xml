@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<objecttypes>
+ <objecttype name="pymunktmx_box" color="#a40002"/>
+ <objecttype name="pymunktmx_poly" color="#a400a4"/>
+ <objecttype name="pymunktmx_circle" color="#00fbff"/>
+ <objecttype name="pymunktmx_segment" color="#00ff08"/>
+
+ <pymunktmx_defaults>
+   <pymunktmx_box>
+       <default key="shape.friction" value="1" />
+       <default key="shape.collision_type" value="0" />
+   </pymunktmx_box>
+
+   <pymunktmx_poly>
+     <default key="shape.friction" value="1" />
+       <default key="shape.collision_type" value="0" />
+   </pymunktmx_poly>
+ </pymunktmx_defaults>
+</objecttypes>
