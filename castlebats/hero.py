@@ -119,7 +119,9 @@ class Model(object):
                 elif button == P1_UP and 'jumping' not in body.state:
                     body.change_state('jumping')
                     self.jump()
-                elif button == P1_ACTION1:
+                elif button == P1_DOWN and 'jumping' not in body.state:
+                    body.change_state('ducking')
+                elif button == P1_ACTION1 and 'attacking' not in body.state:
                     body.change_state('attacking')
 
         elif 'walking' in body.state:
@@ -139,6 +141,12 @@ class Model(object):
                 if button == P1_UP and 'jumping' not in body.state:
                     body.change_state('jumping')
                     self.jump()
+
+        if 'ducking' in body.state:
+            if event.type == KEYUP:
+                if button == P1_DOWN:
+                    body.state.remove('ducking')
+                    body.change_state()
 
         logger.info("hero state %s", body.state)
 
@@ -181,6 +189,9 @@ class Sprite(CastleBatsSprite):
 
         elif 'jumping' in self.state:
             self.set_animation('jumping', itertools.repeat)
+
+        elif 'ducking' in self.state:
+            self.set_animation('ducking', itertools.repeat)
 
         elif 'walking' in self.state:
             self.set_animation('walking', itertools.cycle)

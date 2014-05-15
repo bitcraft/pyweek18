@@ -15,18 +15,19 @@ from castlebats import resources
 from castlebats import Game
 import pygame
 
-import pymunkoptions
-pymunkoptions.options["debug"] = False
+#import pymunkoptions
+#pymunkoptions.options["debug"] = False
 
 def check_libs():
     import pytmx
     import pymunktmx
     import pyscroll
-    import pymunk
     logger.info('pygame version:\t%s', pygame.__version__)
     logger.info('pytmx version:\t%s', pytmx.__version__)
     logger.info('pymunktmx version:\t%s', pymunktmx.__version__)
     logger.info('pyscroll version:\t%s', pyscroll.__version__)
+
+    import pymunk
     logger.info('pymunk version:\t%s', pymunk.__version__)
 
 

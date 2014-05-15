@@ -13,7 +13,7 @@
 
    <pymunktmx_poly>
      <default key="shape.friction" value="1" />
-       <default key="shape.collision_type" value="0" />
+     <default key="shape.collision_type" value="0" />
    </pymunktmx_poly>
  </pymunktmx_defaults>
 </objecttypes>
