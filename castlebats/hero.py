@@ -5,6 +5,9 @@ from . import collisions
 from . import config
 from . import resources
 from .sprite import CastleBatsSprite
+from .sprite import make_body
+from .sprite import make_feet
+from .sprite import make_hitbox
 import logging
 
 logger = logging.getLogger('castlebats.sprite')
@@ -25,6 +28,12 @@ KEY_MAP = {
 
 
 class Model(object):
+    """
+    contains the castlebatssprites (CBS) and responds to controls
+    
+    CBS contain animations, a simple state machine, and references to the pymunk
+    objects that they represent.
+    """
     RIGHT = 1
     LEFT = -1
 
@@ -32,7 +41,17 @@ class Model(object):
         self.body = None
         self.feet = None
         self.motor = None
+        self.joint = None
         self.alive = True
+
+        # this is the normal hitbox
+        self.normal_rect = pygame.Rect(0, 0, 32, 40)
+        self.normal_feet_offset = (0, .7)
+
+        # this is the hitbox for the crouched state
+        self.crouched_rect = pygame.Rect(0, 0, 24, 32)
+        self.crouched_feet_offset = (0, 0)
+
         self.move_power = config.getint('hero', 'move')
         self.jump_power = config.getint('hero', 'jump')
         self.body_direction = self.RIGHT
@@ -66,16 +85,113 @@ class Model(object):
         self.feet.shape.body.position += position
 
     def on_collision(self, space, arbiter):
+        logger.info('hero collision %s, %s, %s, %s', arbiter.elasticity,
+                                                     arbiter.friction,
+                                                     arbiter.is_first_contact,
+                                                     arbiter.total_impulse)
+
         shape0, shape1 = arbiter.shapes
         if shape1.collision_type == collisions.geometry:
             self.grounded = True
+            return 1
 
         elif shape1.collision_type == collisions.trap:
             self.alive = False
             self.body.change_state('die')
-        return 1  # required otherwise ctypes will spam stderr
+            return 0
+
+        else:
+            return 1
+
+    @staticmethod
+    def normal_feet_position(position, feet_shape):
+        return (position.x,
+                position.y - feet_shape.radius * .7)
+
+    @staticmethod
+    def crouched_feet_position(position, feet_shape):
+        return (position.x,
+                position.y + feet_shape.radius * 1.5)
+
+    def crouch(self):
+        self.body.state.remove('idle')
+        self.body.change_state('crouching')
+
+        pymunk_body = self.body.shape.body
+        pymunk_feet = self.body.shape.body
+        space = pymunk_body._space
+
+        # force the velocity to 0 to prevent them from sliding
+        pymunk_body.reset_forces()
+        pymunk_body.velocity = 0, 0
+        pymunk_feet.reset_forces()
+        pymunk_feet.velocity = 0, 0
+
+        # copy the old body shape
+        old_shape = self.body.shape
+        new_shape = make_hitbox(pymunk_body, self.crouched_rect)
+        new_shape.friction = old_shape.friction
+        new_shape.elasticity = old_shape.elasticity
+        new_shape.layers = old_shape.layers
+        new_shape.collision_type = old_shape.collision_type
+        self.body.shape = new_shape
+
+        space.remove(old_shape)
+        space.add(new_shape)
+
+        # kill the joint
+        space.remove(self.joint)
+        self.joint = None
+
+    def uncrouch(self):
+        self.body.state.remove('crouching')
+        self.body.change_state('idle')
+
+        pymunk_body = self.body.shape.body
+        pymunk_feet = self.feet.shape.body
+        space = pymunk_body._space
+
+        # copy the old body shape
+        old_shape = self.body.shape
+        new_shape = make_hitbox(pymunk_body, self.normal_rect)
+        new_shape.friction = old_shape.friction
+        new_shape.elasticity = old_shape.elasticity
+        new_shape.layers = old_shape.layers
+        new_shape.collision_type = old_shape.collision_type
+
+        # move bodies to unused part of map
+        # rebuild the shape
+        # place back in the same place
+        old_position = pymunk.Vec2d(pymunk_feet.position)
+        pymunk_body.position = 0, 0
+
+        # set the feet to the right spot
+        pymunk_feet.position = self.normal_feet_position(
+            pymunk_body.position,
+            self.feet.shape
+        )
+
+        diff = pymunk.Vec2d(pymunk_feet.position)
+
+        # pin them together again
+        joint = pymunk.PivotJoint(
+            pymunk_body, pymunk_feet, pymunk_feet.position, (0, 0))
+
+        # put back in old position
+        pymunk_feet.position = old_position
+        pymunk_body.position = pymunk_feet.position - diff
+
+        space.remove(old_shape)
+        space.add(new_shape)
+        space.add(joint)
+
+        self.body.shape = new_shape
+        self.joint = joint
 
     def accelerate(self, direction):
+        self.body.state.remove('idle')
+        self.body.change_state('walking')
+
         this_direction = None
         if direction > 0:
             this_direction = self.RIGHT
@@ -91,12 +207,18 @@ class Model(object):
         self.motor.rate = amt
 
     def brake(self):
+        self.body.state.remove('walking')
+        self.body.change_state('idle')
         self.motor.rate = 0
         self.motor.max_force = pymunk.inf
 
     def jump(self):
         impulse = (0, self.jump_power)
         self.body.shape.body.apply_impulse(impulse)
+
+    def attack(self):
+        if 'attacking' not in self.body.state:
+            self.body.change_state('attacking')
 
     def update(self, dt):
         # do not update the sprites!
@@ -114,30 +236,22 @@ class Model(object):
         if 'idle' in body.state:
             if event.type == KEYDOWN:
                 if button == P1_LEFT:
-                    body.state.remove('idle')
-                    body.change_state('walking')
                     self.accelerate(self.LEFT)
                 elif button == P1_RIGHT:
-                    body.state.remove('idle')
-                    body.change_state('walking')
                     self.accelerate(self.RIGHT)
                 elif button == P1_UP and 'jumping' not in body.state:
                     body.change_state('jumping')
                     self.jump()
                 elif button == P1_DOWN and 'jumping' not in body.state:
-                    body.change_state('ducking')
-                elif button == P1_ACTION1 and 'attacking' not in body.state:
-                    body.change_state('attacking')
+                    self.crouch()
+                elif button == P1_ACTION1:
+                    self.attack()
 
         elif 'walking' in body.state:
             if event.type == KEYUP:
                 if button == P1_LEFT:
-                    body.state.remove('walking')
-                    body.change_state('idle')
                     self.brake()
                 elif button == P1_RIGHT:
-                    body.state.remove('walking')
-                    body.change_state('idle')
                     self.brake()
                 elif button == P1_UP and 'jumping' not in body.state:
                     body.change_state('jumping')
@@ -147,11 +261,15 @@ class Model(object):
                     body.change_state('jumping')
                     self.jump()
 
-        if 'ducking' in body.state:
+        if 'crouching' in body.state:
             if event.type == KEYUP:
                 if button == P1_DOWN:
-                    body.state.remove('ducking')
-                    body.change_state()
+                    self.uncrouch()
+
+        if 'jumping' in body.state:
+            if event.type == KEYDOWN:
+                if button == P1_ACTION1:
+                    self.attack()
 
         logger.info("hero state %s", body.state)
 
@@ -164,7 +282,7 @@ class Sprite(CastleBatsSprite):
     """
     image_animations = [
         ('idle', 100, ((10, 6, 34, 48, 0, 0), )),
-        ('ducking', 100, ((248, 22, 23, 34, 0, 0), )),
+        ('crouching', 100, ((248, 22, 23, 34, 0, 0), )),
         ('jumping', 100, ((128, 62, 47, 49, 0, 0), )),
         ('attacking', 40, ((16, 188, 49, 50, 3, 0),
                            (207, 190, 42, 48, 6, 0),
@@ -209,8 +327,8 @@ class Sprite(CastleBatsSprite):
         elif 'jumping' in self.state:
             self.set_animation('jumping', itertools.repeat)
 
-        elif 'ducking' in self.state:
-            self.set_animation('ducking', itertools.repeat)
+        elif 'crouching' in self.state:
+            self.set_animation('crouching', itertools.repeat)
 
         elif 'walking' in self.state:
             self.set_animation('walking', itertools.cycle)
@@ -222,55 +340,41 @@ class Sprite(CastleBatsSprite):
 def build(space):
     logger.info('building hero model')
 
-    def make_body(rect):
-        mass = 10
-        #inertia = pymunk.moment_for_box(mass, rect.width, rect.height)
-        inertia = pymunk.inf
-        body = pymunk.Body(mass, inertia)
-        points = [rect.bottomleft, rect.bottomright, rect.midright,
-                  rect.midtop, rect.midleft]
-        shape = pymunk.Poly(body, points, (-rect.centerx, -rect.centery))
-        return body, shape
-
-    def make_feet(rect):
-        mass = 2
-        radius = rect.width * .45
-        inertia = pymunk.moment_for_circle(mass, 0, radius, (0, 0))
-        body = pymunk.Body(mass, inertia)
-        shape = pymunk.Circle(body, radius, (0, 0))
-        return body, shape
+    model = Model()
 
     # build body
     layers = 1
-    body_rect = pygame.Rect(0, 0, 32, 44)
-    body_body, body_shape = make_body(body_rect)
+    body_body, body_shape = make_body(model.normal_rect)
     body_shape.layers = layers
-    body_shape.friction = 1
+    body_shape.friction = pymunk.inf
+    body_shape.elasticity = 0
     body_sprite = Sprite(body_shape)
     space.add(body_body, body_shape)
 
     # build feet
     layers = 2
-    feet_body, feet_shape = make_feet(body_rect)
+    feet_body, feet_shape = make_feet(model.normal_rect)
     feet_shape.collision_type = collisions.hero
     feet_shape.layers = layers
     feet_shape.friction = pymunk.inf
+    feet_shape.elasticity = 0
     feet_sprite = CastleBatsSprite(feet_shape)
     space.add(feet_body, feet_shape)
 
     # jump/collision sensor
-    layers = 2
-    size = body_rect.width, body_rect.height * 1.05
-    offset = 0, -body_rect.height * .05
-    sensor = pymunk.Poly.create_box(body_body, size, offset)
-    sensor.sensor = True
-    sensor.layers = layers
-    sensor.collision_type = collisions.hero
-    space.add(sensor)
+    #layers = 2
+    #size = body_rect.width, body_rect.height * 1.05
+    #offset = 0, -body_rect.height * .05
+    #sensor = pymunk.Poly.create_box(body_body, size, offset)
+    #sensor.sensor = True
+    #sensor.layers = layers
+    #sensor.collision_type = collisions.hero
+    #space.add(sensor)
 
     # attach feet to body
-    feet_body.position = (body_body.position.x,
-                          body_body.position.y - feet_shape.radius * .7)
+    feet_body.position = model.normal_feet_position(
+        body_body.position,
+        feet_shape)
 
     # motor and joint for feet
     motor = pymunk.SimpleMotor(body_body, feet_body, 0.0)
@@ -279,9 +383,9 @@ def build(space):
     space.add(motor, joint)
 
     # the model is used to gameplay logic
-    model = Model()
     model.body = body_sprite
     model.feet = feet_sprite
+    model.joint = joint
     model.motor = motor
 
     space.add_collision_handler(collisions.hero,
