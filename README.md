@@ -1,6 +1,12 @@
 pyweek18 entry
 
-
+version requirements
+====================
+pygame 1.9
+pymunk 4
+pymunktmx 0.7
+pytmx 2.16.4
+pyscroll 2.14.2
 
 credits
 =======
