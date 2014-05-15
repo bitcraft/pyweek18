@@ -78,7 +78,7 @@ class CastleBatsSprite(pygame.sprite.Sprite):
         self.axis = pymunk.Vec2d(axis)
         if self.flip:
             w, h = new_surf.get_size()
-            new_surf = pygame.transform.flip(new_surf, 1, 0)
+            new_surf = flip(new_surf, 1, 0)
             self.axis.x = -self.axis.x
         self.original_surface = new_surf
 
@@ -248,13 +248,10 @@ class ViewPort(pygame.sprite.Sprite):
         xx = -self.camera_vector.x + self.map_layer.half_width + ox
         yy = -self.camera_vector.y + self.map_layer.half_height + oy
 
-        if self.draw_map:
-            self.map_layer.draw(surface, self.rect)
-
+        surface_blit = surface.blit
+        to_draw = list()
         if self.draw_sprites:
-            dirty = list()
-            surface_blit = surface.blit
-            dirty_append = dirty.append
+            to_draw_append = to_draw.append
             camera_collide = camera.colliderect
             map_height = self.map_height
 
@@ -267,8 +264,17 @@ class ViewPort(pygame.sprite.Sprite):
 
                     if camera_collide(new_rect):
                         new_rect = new_rect.move(xx, yy)
-                        dirty_rect = surface_blit(sprite.image, new_rect)
-                        dirty_append(dirty_rect)
+                        to_draw_append((sprite.image, new_rect, 0))
+
+        if self.draw_map and self.draw_sprites:
+            self.map_layer.draw(surface, self.rect, to_draw)
+
+        elif self.draw_sprites:
+            for s, r, l in to_draw:
+                surface_blit(s, r)
+
+        elif self.draw_map:
+            self.map_layer.draw(surface, self.rect)
 
         if self.draw_overlay:
             overlay = self.overlay_surface

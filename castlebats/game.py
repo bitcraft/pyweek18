@@ -6,6 +6,9 @@ import pymunk
 from pymunktmx.shapeloader import load_shapes
 from pygame.locals import *
 
+import logging
+logger = logging.getLogger('castlebats.game')
+
 from . import ui
 from . import resources
 from . import hero
@@ -90,6 +93,10 @@ class Level(object):
         self.draw_background = config.getboolean('display', 'draw-background')
 
         self.tmx_data = resources.maps['level0']
+
+        #for o in self.tmx_data.getObjects():
+        #    o.texture = 25
+
         self.map_data = pyscroll.TiledMapData(self.tmx_data)
         self.bg = resources.images['default-bg']
 
@@ -98,6 +105,9 @@ class Level(object):
         self.space = pymunk.Space()
         self.space.gravity = (0, config.getfloat('world', 'gravity'))
         shapes = load_shapes(self.tmx_data, self.space, resources.level_xml)
+
+        for shape in self.space.shapes:
+            logger.info("loaded shape: %s", shape)
 
         # load the vp group and the single vp for level drawing
         self.vpgroup = sprite.ViewPortGroup(self.space, self.map_data)

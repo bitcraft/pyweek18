@@ -19,7 +19,7 @@
    eJzt1jduVFEUgOHHdIQFYGADBjZA2AChIkmEiiRsqEwQY6hsQCJUJMlARZIIG8BmA4QNYKiAhrAIfvQqRmd8/QbmPuvyf9Jfnacr65xiXFXNraaRIdTP8k5VraCVtKrTfF663PcYYcdraC2tC/admpcu9z1G2fF62kAbg32n5qXLfY9N7HgzbaGtwb5T89Llvsc2dryddtDOYN+peely32M/Oz5AB+lQsO/UvHS57zHGjsfpJJ0K9p2aly73PbrseJIu0MVg36l56XLf4yo7vkbX6Uaw79S8dLnvMcOO79F9ehDsOzUvXe57PGPHz+kFvQz2nZqXLvc9XrHjWZqj18G+U/PS5b7HG3b8lt7R+2DfqXnpft9jtKdh3uMDO56nj/Qp2HdqXrrOkOrnG8Pv9IN+Bh+m5qXbRbtpD+2lfS29odphOkJH6Rgdb+kN1SboNJ2hs3SupTdUm6JpukSX6UpLb6h2k27RbbpDd1t6Q7WH9Ige0xN62tIb/6Nl1d/9r9rETNB4zzcnFjEf60mD6QZN9nxzvuG8O8S/t3TeY2npd4/P9IW+VvE9Fpp7j8FF95it/vwtmGs49x6Di+7xL9JgvMfS4j0kSZIkSZIkSZIkSZIkSZIkSZIkSZIkSZIkSZIkSZIkSZIkSZIkSZIkSYr9AlydxEI=
   </data>
  </layer>
- <objectgroup name="Walls" visible="0">
+ <objectgroup name="Walls" width="0" height="0" visible="0">
   <object x="448" y="1488" width="176" height="96"/>
   <object x="192" y="1488" width="176" height="16"/>
   <object x="272" y="1280" width="352" height="112"/>
@@ -35,10 +35,10 @@
    <polygon points="0,0 80,32 192,0 288,-80 336,-16 320,128 160,192 0,192"/>
   </object>
  </objectgroup>
- <objectgroup name="Actors" visible="0">
+ <objectgroup name="Actors" width="0" height="0" visible="0">
   <object name="hero" type="Hero" x="144" y="256" width="48" height="48"/>
  </objectgroup>
- <objectgroup name="Traps" visible="0">
+ <objectgroup name="Traps" width="0" height="0" visible="0">
   <object type="spike" x="656" y="384" width="48" height="16"/>
   <object type="spike" x="784" y="384" width="48" height="16"/>
  </objectgroup>
