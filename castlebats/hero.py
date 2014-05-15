@@ -1,6 +1,7 @@
 import itertools
 import pygame
 import pymunk
+from . import collisions
 from . import config
 from . import resources
 from .sprite import CastleBatsSprite
@@ -66,8 +67,12 @@ class Model(object):
 
     def on_collision(self, space, arbiter):
         shape0, shape1 = arbiter.shapes
-        if shape0.collision_type == 0:
+        if shape1.collision_type == collisions.geometry:
             self.grounded = True
+
+        elif shape1.collision_type == collisions.trap:
+            self.alive = False
+            self.body.change_state('die')
         return 1  # required otherwise ctypes will spam stderr
 
     def accelerate(self, direction):
@@ -165,10 +170,12 @@ class Sprite(CastleBatsSprite):
                            (207, 190, 42, 48, 6, 0),
                            (34, 250, 52, 54, 15, 0),
                            (194, 256, 50, 46, -6, 0))),
-        ('walking', 120, ((304, 128, 36, 40, 0, -1),
+        ('walking', 100, ((304, 128, 36, 40, 0, -1),
                           (190, 126, 28, 44, -1, 0),
                           (74, 128, 32, 40, 0, -1),
                           (190, 126, 28, 44, -1, 0))),
+        ('hurt', 50, ((307, 4, 50, 50, 0, 0),
+                      (365, 4, 50, 50, 0, 0))),
     ]
 
     def __init__(self, shape):
@@ -181,7 +188,19 @@ class Sprite(CastleBatsSprite):
         if state:
             self.state.append(state)
 
-        if 'attacking' in self.state:
+        if 'hurt' in self.state:
+            resources.sounds['hurt'].stop()
+            resources.sounds['hurt'].play()
+            self.set_animation('hurt')
+            self.state.remove('hurt')
+
+        elif 'die' in self.state:
+            resources.sounds['hurt'].stop()
+            resources.sounds['hurt'].play()
+            self.set_animation('hurt')
+            self.state.remove('die')
+
+        elif 'attacking' in self.state:
             resources.sounds['sword'].stop()
             resources.sounds['sword'].play()
             self.set_animation('attacking')
@@ -233,7 +252,7 @@ def build(space):
     # build feet
     layers = 2
     feet_body, feet_shape = make_feet(body_rect)
-    feet_shape.collision_type = 1
+    feet_shape.collision_type = collisions.hero
     feet_shape.layers = layers
     feet_shape.friction = pymunk.inf
     feet_sprite = CastleBatsSprite(feet_shape)
@@ -246,7 +265,7 @@ def build(space):
     sensor = pymunk.Poly.create_box(body_body, size, offset)
     sensor.sensor = True
     sensor.layers = layers
-    sensor.collision_type = 1
+    sensor.collision_type = collisions.hero
     space.add(sensor)
 
     # attach feet to body
@@ -265,6 +284,11 @@ def build(space):
     model.feet = feet_sprite
     model.motor = motor
 
-    space.add_collision_handler(0, 1, model.on_collision)
+    space.add_collision_handler(collisions.hero,
+                                collisions.geometry,
+                                model.on_collision)
 
+    space.add_collision_handler(collisions.hero,
+                                collisions.trap,
+                                model.on_collision)
     return model
