@@ -5,6 +5,7 @@ from . import config
 from . import resources
 from .sprite import CastleBatsSprite
 import logging
+
 logger = logging.getLogger('castlebats.sprite')
 
 from pygame.locals import *
@@ -44,6 +45,7 @@ class Model(object):
         if value:
             if 'jumping' in self.body.state:
                 self.body.state.remove('jumping')
+                self.body.change_state()
         else:
             if 'jumping' not in self.body.state:
                 self.body.change_state('jumping')
@@ -148,8 +150,13 @@ class Sprite(CastleBatsSprite):
         (animation name, ((frame duration, (x, y, w, h, x offset, y offset)...)
     """
     image_animations = [
-        ('idle', 100, ((10, 8, 34, 46, 0, 0), )),
-        ('attacking', 100, ((34, 252, 52, 52, 12, 0), )),
+        ('idle', 100, ((10, 6, 34, 48, 0, 0), )),
+        ('ducking', 100, ((248, 22, 23, 34, 0, 0), )),
+        ('jumping', 100, ((128, 62, 47, 49, 0, 0), )),
+        ('attacking', 40, ((16, 188, 49, 50, 3, 0),
+                           (207, 190, 42, 48, 6, 0),
+                           (34, 250, 52, 54, 15, 0),
+                           (194, 256, 50, 46, -6, 0))),
         ('walking', 120, ((304, 128, 36, 40, 0, -1),
                           (190, 126, 28, 44, -1, 0),
                           (74, 128, 32, 40, 0, -1),
@@ -161,14 +168,19 @@ class Sprite(CastleBatsSprite):
         self.load_animations()
         self.change_state('idle')
 
-    def change_state(self, state):
-        self.state.append(state)
+    def change_state(self, state=None):
+
+        if state:
+            self.state.append(state)
 
         if 'attacking' in self.state:
             resources.sounds['sword'].stop()
             resources.sounds['sword'].play()
             self.set_animation('attacking')
             self.state.remove('attacking')
+
+        elif 'jumping' in self.state:
+            self.set_animation('jumping', itertools.repeat)
 
         elif 'walking' in self.state:
             self.set_animation('walking', itertools.cycle)
@@ -218,8 +230,8 @@ def build(space):
 
     # jump/collision sensor
     layers = 2
-    size = body_rect.width, body_rect.height*1.05
-    offset = 0, -body_rect.height*.05
+    size = body_rect.width, body_rect.height * 1.05
+    offset = 0, -body_rect.height * .05
     sensor = pymunk.Poly.create_box(body_body, size, offset)
     sensor.sensor = True
     sensor.layers = layers
