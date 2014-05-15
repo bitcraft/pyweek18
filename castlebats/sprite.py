@@ -37,6 +37,8 @@ class CastleBatsSprite(pygame.sprite.Sprite):
     @classmethod
     def load_animations(cls):
         if not cls.loaded:
+            logger.info("loading %s animations", cls)
+            cls.animations = dict()
             cls.loaded = True
             s = resources.images[cls.sprite_sheet]
 

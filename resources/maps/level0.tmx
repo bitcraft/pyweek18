@@ -39,7 +39,7 @@
   <object name="hero" type="Hero" x="144" y="256" width="48" height="48"/>
  </objectgroup>
  <objectgroup name="Traps" width="0" height="0" visible="0">
-  <object type="spike" x="656" y="384" width="48" height="16"/>
-  <object type="spike" x="784" y="384" width="48" height="16"/>
+  <object type="pymunktmx_box" x="656" y="384" width="48" height="16"/>
+  <object type="pymunktmx_box" x="784" y="384" width="48" height="16"/>
  </objectgroup>
 </map>

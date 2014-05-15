@@ -9,9 +9,11 @@ from pygame.locals import *
 import logging
 logger = logging.getLogger('castlebats.game')
 
+from . import collisions
 from . import ui
 from . import resources
 from . import hero
+from . import zombie
 from . import sprite
 from . import config
 
@@ -91,23 +93,27 @@ class Level(object):
         self._add_queue = set()
         self._remove_queue = set()
         self.draw_background = config.getboolean('display', 'draw-background')
-
-        self.tmx_data = resources.maps['level0']
-
-        #for o in self.tmx_data.getObjects():
-        #    o.texture = 25
-
-        self.map_data = pyscroll.TiledMapData(self.tmx_data)
         self.bg = resources.images['default-bg']
 
+        self.tmx_data = resources.maps['level0']
+        self.map_data = pyscroll.TiledMapData(self.tmx_data)
         self.map_height = self.map_data.height * self.map_data.tileheight
 
+        # manually set all objects in the traps layer to trap collision type
+        for layer in self.tmx_data.objectgroups:
+            if layer.name == 'Traps':
+                for index, obj in enumerate(layer):
+                    obj.name = 'trap_{}'.format(index)
+
+        # set up the physics simulation
         self.space = pymunk.Space()
         self.space.gravity = (0, config.getfloat('world', 'gravity'))
         shapes = load_shapes(self.tmx_data, self.space, resources.level_xml)
 
-        for shape in self.space.shapes:
-            logger.info("loaded shape: %s", shape)
+        for name, shape in shapes.items():
+            logger.info("loaded shape: %s", name)
+            if name.startswith('trap'):
+                shape.collision_type = collisions.trap
 
         # load the vp group and the single vp for level drawing
         self.vpgroup = sprite.ViewPortGroup(self.space, self.map_data)
@@ -117,15 +123,20 @@ class Level(object):
         typed_objects = [obj for obj in self.tmx_data.getObjects()
                          if obj.type is not None]
 
+        # find the hero and position her
         hero_coords = None
         for obj in typed_objects:
-            if obj.type.lower() == "hero":
+            if obj.type.lower() == 'hero':
                 hero_coords = self.translate((obj.x, obj.y))
 
         self.hero = hero.build(self.space)
         self.hero.position = hero_coords
         self.add_actor(self.hero)
         self.vp.follow(self.hero.feet)
+
+        #zomb = zombie.build(self.space)
+        #zomb.position = hero_coords + (200, 0)
+        #self.add_actor(zomb)
 
     def translate(self, coords):
         return pymunk.Vec2d(coords[0], self.map_height - coords[1])
