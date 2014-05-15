@@ -11,7 +11,7 @@
  </tileset>
  <layer name="Tile Layer 1" width="100" height="100">
   <data encoding="base64" compression="zlib">
-   eJzt10drFGEAh/FVL/oN9OtY77aLFRuKlTQTrKQpWElTsJJmxBasESt2sN6td+vd+iyuJDPuzG7Cwkyyzw+ey8vrHt4/ypjJpMescelIfyW9g3sEJb2DewQlvYN7BCW9g3sEJb2DewQlvYN7BCW9g3sEJb2DewQlvYN7BBV6pwW0kBbRYlpCS0dwxz2KU+id1tI6Wk8baCNtGsEd9yhOoXfaQltpG22nHbRzBHfcoziF3mkP7aV9tJ8O0MER3BmLe0yj6TQj5s7U0L2ZufPVtCZP2beooEqqomqqoc1US0foKB2j43SCTobeMu5O3G+P9j2KMZvm0FyaR/Nz57XUR6epLtfQ92igRmqiZtpFu+kMnaVzdJ4uUH/oLePu1Mf8djnssYyW0wpaSaty59k9Buh6Jv8erdRG7dRBh+gw3aCbdItu0x26G3rLuDstMb9dDntUUCVVUTXV5M6ze9SFGvoeXdRNPdRLp6iPntIzek4v6CW9Cr1l3J3OmN8uhz3qqYEaqYmac+fhPQYywU0u0WW6QlfpGg3Qa3pDb+kdvacPobeMu3Mx5rfLYY8WaqU2aqeO3PnQPfoz//8duU8P6CE9osf0hD7SJ/pMX+grfQu9ZdydezG/XQ57dFIXdVMP9ebO8/17Ff43K1/f6Qf9pF/0O/t244d/ZzR/70Z9s4bPJ0T8+Yk0qciiFHqr0fKWpRD1zRp1HjaZphRZFPcYFPXNGnUe5h6lFfXNGnU+VPZ53KO0or5Zo87DSrHHP+Xw3oVEfbNGnYeVcg9Ff7NGnYe5R7q4R7oMZ498/0csRRrkHuniHuniHuniHuniHuniHuniHpIkSZIkSZIkSZIkSZIkSZIkSZIkSZIkSZIkSZIkSZIkSZIkSRrL/gAf2sUn
+   eJzt10drFGEAh/FVT34D/TrWu+1ixYZiJc0EK2kKVtIUrKQZsQVrxIodrHfr3Xq3PsGVZMad2d24MJPs84Pn8vKyh/ePYcxk0mPmuHSkP5LewT2Ckt7BPYKS3sE9gpLewT2Ckt7BPYKS3sE9gpLewT2Ckt7BPYKS3sE9gvK903xaQAtpES2mJSO44x6FyfdOa2gtraP1tIE2juCOexQm3zttpi20lbbRdtoxgjvuUZh877Sb9tBe2kf76cAI7ozFPabSNJoec2dK6N6M7PkqWp2jwbeooEqqomqqoU1US4fpCB2lY3ScToTeMu5O3G+P9j0KMYtm0xyaS/Oy57XUR6eoLtvw92igRmqiZtpJu+g0naGzdI7OU3/oLePu1Mf8djnssZSW0XJaQSuz54N7DNC1TO49WqmN2qmDDtIhuk436Cbdott0J/SWcXdaYn67HPaooEqqomqqyZ4P7lEXavh7dFE39VAvnaQ+ekJP6Rk9pxf0MvSWcXc6Y367HPaopwZqpCZqzp6H9xjIBDe5SJfoMl2hqzRAr+g1vaG39I7eh94y7s6FmN8uhz1aqJXaqJ06sufD9+jP/Ptv5B7dpwf0kB7RY/pAH+kTfaYv9DX0lnF37sb8djns0Uld1E091Js9z/X3Kvw3K1ff6Dv9oJ/0a/Dtxhd/ZzR/70Z9s4bPJ8ScTyywKPnearS8ZSlEfbMWcz65wKK4x5Cob9Zizt2jdKK+WYs5d4/SifpmLeb8f/f4qxzeO5+ob9Zizku1h6K/WYs5d4/0mJRxjzQpZo9c/0csRRriHuniHuniHuniHuniHuniHuniHpIkSZIkSZIkSZIkSZIkSZIkSZIkSZIkSZIkSZIkSZIkSZIkSRrLfgMJzNQn
   </data>
  </layer>
  <layer name="Tile Layer 2" width="100" height="100">
@@ -26,11 +26,14 @@
   <object x="432" y="1536" width="16" height="16"/>
   <object type="pymunktmx_box" x="368" y="384" width="16" height="16"/>
   <object type="pymunktmx_box" x="384" y="336" width="272" height="256"/>
-  <object type="pymunktmx_box" x="128" y="336" width="176" height="16"/>
+  <object type="pymunktmx_box" x="128" y="336" width="256" height="16"/>
   <object type="pymunktmx_box" x="208" y="0" width="352" height="224"/>
   <object type="pymunktmx_box" x="704" y="336" width="80" height="64"/>
   <object type="pymunktmx_box" x="832" y="336" width="80" height="64"/>
   <object type="pymunktmx_box" x="656" y="400" width="256" height="32"/>
+  <object type="pymunktmx_poly" x="912" y="336">
+   <polygon points="0,0 80,32 192,0 288,-80 336,-16 320,128 160,192 0,192"/>
+  </object>
  </objectgroup>
  <objectgroup name="Actors" visible="0">
   <object name="hero" type="Hero" x="144" y="256" width="48" height="48"/>

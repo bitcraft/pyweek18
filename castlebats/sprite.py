@@ -72,13 +72,13 @@ class CastleBatsSprite(pygame.sprite.Sprite):
                     self.set_animation('idle')
 
     def set_frame(self, frame):
-        self.animation_timer, frame = frame
         new_surf, axis = frame
+        self.animation_timer, frame = frame
         self.axis = pymunk.Vec2d(axis)
         if self.flip:
             w, h = new_surf.get_size()
             new_surf = pygame.transform.flip(new_surf, 1, 0)
-            self.axis.y = w - self.axis.y
+            self.axis.x = w - self.axis.x
         self.original_surface = new_surf
 
     def set_animation(self, name, func=None):
@@ -114,40 +114,24 @@ class ViewPortGroup(pygame.sprite.Group):
         self.resize()
 
     def resize(self):
+        logger.info("resizing the viweports")
         rects = list()
         if len(self.viewports) == 1:
-            w, h = self.rect.size
+            x, y, w, h = self.rect
             rects = [
-                (0, 0, w, h),
+                (x, y, w, h),
             ]
 
         elif len(self.viewports) == 2:
-            w, h = self.rect.size
+            x, y, w, h = self.rect
             rects = [
-                (0, 0, w, h / 2),
-                (0, h / 2, w, h / 2),
+                (x, y, w, h / 2),
+                (x, h / 2 + y, w, h / 2 + y),
             ]
 
-        elif len(self.viewports) == 3:
-            w, h = self.rect.size
-            rects = [
-                (0, 0, w, h / 2),
-                (0, h / 2, w / 2, h / 2),
-                (w / 2, h / 2, w / 2, h / 2),
-            ]
-
-        elif len(self.viewports) == 4:
-            w = self.rect.width / 2
-            h = self.rect.height / 2
-            rects = [
-                (0, 0, w, h),
-                (w, 0, w, h),
-                (0, h, w, h),
-                (w, h, w, h),
-            ]
         else:
             logger.error(
-                "too many viewports in the manager. only 4 are allowed.")
+                "too many viewports in the manager. only 2 are allowed.")
             raise ValueError
 
         for k in self.viewports.keys():
@@ -203,15 +187,15 @@ class ViewPort(pygame.sprite.Sprite):
         # 0 = normal
         # 1 = wireframe
         # 2 = normal + wireframe overlay
-        self.draw_mode = 2
+        self.draw_mode = 0
         self.wireframe_surface = None
 
     def set_rect(self, rect):
-        self.rect = rect
+        self.rect = pygame.Rect(rect)
         md = self.parent.map_data
         colorkey = (128, 64, 128)
         self.map_layer = pyscroll.BufferedRenderer(
-            md, rect.size, colorkey, 2, True)
+            md, self.rect.size, colorkey, 2, True)
         self.map_height = md.height * md.tileheight
         self.center()
 
@@ -258,15 +242,13 @@ class ViewPort(pygame.sprite.Sprite):
 
         camera = self.rect.copy()
         camera.center = self.camera_vector
-        self.camera_vector.x = camera.centerx
-        self.camera_vector.y = camera.centery
+        self.camera_vector.x = self.map_layer.old_x
+        self.camera_vector.y = self.map_layer.old_y
 
         ox, oy = self.rect.topleft
         self.map_layer.draw(surface, self.rect)
         xx = -self.camera_vector.x + self.map_layer.half_width + ox
         yy = -self.camera_vector.y + self.map_layer.half_height + oy
-
-        print self.camera_vector, camera.center
 
         # deref for speed
         surface_blit = surface.blit
@@ -282,6 +264,7 @@ class ViewPort(pygame.sprite.Sprite):
                 sprite.update_image()
                 new_rect = sprite.rect.copy()
                 new_rect.y = map_height - new_rect.y - new_rect.height
+                new_rect.move_ip(*sprite.axis)
                 if camera_collide(new_rect):
                     new_rect = new_rect.move(xx, yy)
                     dirty_rect = surface_blit(sprite.image, new_rect)

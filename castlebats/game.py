@@ -19,28 +19,37 @@ class Game(object):
     def __init__(self):
         self.states = []
         self.states.append(Level())
-
         self.score = 0
         self.lives = 0
         self.health = 0
         self.magic = 0
         self.item = None
         self.time = 0
-        self.hud_group = None
 
     def run(self):
         clock = pygame.time.Clock()
         screen = pygame.display.get_surface()
+        screen_size = screen.get_size()
+        surface = pygame.Surface([int(i / 2) for i in screen_size])
+        scale = pygame.transform.scale
         flip = pygame.display.flip
-        hud_group = self.hud_group
         running = True
-        self.states[0].enter()
 
-        self.hud_group = pygame.sprite.RenderUpdates()
+        level_rect = surface.get_rect()
+        level_rect.inflate_ip(0, -level_rect.height * .20)
+        level_rect.bottom = surface.get_rect().bottom
 
+        hud_group = pygame.sprite.RenderUpdates()
+
+        # add stuff to the hud
         c = (255, 255, 255)
         bg = (0, 0, 0)
         s = ui.TextSprite(self.score, c, bg)
+        s.rect.topleft = (0,0)
+        hud_group.add(s)
+
+        state = self.states[0]
+        state.enter()
 
         try:
             while running:
@@ -51,10 +60,12 @@ class Game(object):
                 state.update(td)
                 state.update(td)
                 hud_group.update()
-                state.draw(screen)
-                hud_group.draw(screen)
+                state.draw(surface, level_rect)
+                hud_group.draw(surface)
+                scale(surface, screen_size, screen)
                 running = state.running
                 flip()
+                self.score += 1
 
         except KeyboardInterrupt:
             running = False
@@ -74,10 +85,6 @@ class Level(object):
         self.hud_group = pygame.sprite.Group()
         self._add_queue = set()
         self._remove_queue = set()
-
-        screen = pygame.display.get_surface()
-        sw, sh = screen.get_size()
-        self.init_buffer((sw / 2, sh / 2))
 
         self.tmx_data = resources.maps['level0']
         self.map_data = pyscroll.TiledMapData(self.tmx_data)
@@ -136,25 +143,15 @@ class Level(object):
         else:
             self._remove_queue.add(actor)
 
-    def init_buffer(self, size):
-        self.buffer_surface = pygame.Surface(size)
-        self.buffer_rect = self.buffer_surface.get_rect()
-
-    def draw(self, surface):
-        buffer_surface = self.buffer_surface
-
+    def draw(self, surface, rect):
         # draw the background
-        buffer_surface.blit(self.bg, (0, 0))
-        buffer_surface.blit(self.bg, (self.bg.get_width(), 0))
+        surface.blit(self.bg, rect.topleft)
+        surface.blit(self.bg, (self.bg.get_width(), rect.top))
 
-        # draw the world and hud
-        self.vpgroup.draw(buffer_surface, self.buffer_rect)
-        self.hud_group.draw(buffer_surface)
+        # draw the world
+        self.vpgroup.draw(surface, rect)
 
-        # scale everything up for a nice pixelated look
-        pygame.transform.scale(buffer_surface, surface.get_size(), surface)
-
-        return surface.get_rect()
+        return rect
 
     def handle_input(self):
         for event in pygame.event.get():
