@@ -33,6 +33,7 @@ class Game(object):
         surface = pygame.Surface([int(i / 2) for i in screen_size])
         scale = pygame.transform.scale
         flip = pygame.display.flip
+        target_fps = config.getint('display', 'target-fps')
         running = True
 
         level_rect = surface.get_rect()
@@ -53,12 +54,13 @@ class Game(object):
 
         try:
             while running:
-                td = clock.tick(60)
+                dt = clock.tick(target_fps)
+                dt /= 3.0
                 state = self.states[0]
                 state.handle_input()
-                state.update(td)
-                state.update(td)
-                state.update(td)
+                state.update(dt)
+                state.update(dt)
+                state.update(dt)
                 hud_group.update()
                 state.draw(surface, level_rect)
                 hud_group.draw(surface)
@@ -85,6 +87,7 @@ class Level(object):
         self.hud_group = pygame.sprite.Group()
         self._add_queue = set()
         self._remove_queue = set()
+        self.draw_background = config.getboolean('display', 'draw-background')
 
         self.tmx_data = resources.maps['level0']
         self.map_data = pyscroll.TiledMapData(self.tmx_data)
@@ -145,8 +148,11 @@ class Level(object):
 
     def draw(self, surface, rect):
         # draw the background
-        surface.blit(self.bg, rect.topleft)
-        surface.blit(self.bg, (self.bg.get_width(), rect.top))
+        if self.draw_background:
+            surface.blit(self.bg, rect.topleft)
+            surface.blit(self.bg, (self.bg.get_width(), rect.top))
+        else:
+            surface.fill((0, 0, 0))
 
         # draw the world
         self.vpgroup.draw(surface, rect)
@@ -167,17 +173,11 @@ class Level(object):
             self.hero.handle_input(event)
 
     def update(self, dt):
-        self.time += dt
+        seconds = dt / 1000.
+        self.time += seconds
 
-        step_amt = dt / 3000.
+        step_amt = seconds / 3.
         step = self.space.step
-        step(step_amt)
-        step(step_amt)
-        step(step_amt)
-        step(step_amt)
-        step(step_amt)
-        step(step_amt)
-        step(step_amt)
         step(step_amt)
         step(step_amt)
         step(step_amt)
