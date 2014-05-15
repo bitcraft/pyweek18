@@ -4,7 +4,8 @@ __all__ = ['TextSprite']
 
 pygame.font.init()
 default_font = pygame.font.get_default_font()
-font = pygame.font.SysFont(default_font, 36)
+font = pygame.font.SysFont(default_font, 32)
+
 
 class TextSprite(pygame.sprite.DirtySprite):
     def __init__(self, text, color=None, bgcolor=None):
@@ -17,7 +18,7 @@ class TextSprite(pygame.sprite.DirtySprite):
         self.color = color
         self.bgcolor = bgcolor
         self.image = None
-        self.rect = pygame.Rect(0,0,1,1)
+        self.rect = pygame.Rect(0, 0, 1, 1)
         self.update_image()
 
     def update(self, dt=None):
