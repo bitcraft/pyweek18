@@ -14,6 +14,7 @@ import logging
 logger = logging.getLogger("castlebats.sprite")
 
 from . import resources
+from . import config
 
 
 class CastleBatsSprite(pygame.sprite.Sprite):
@@ -72,13 +73,13 @@ class CastleBatsSprite(pygame.sprite.Sprite):
                     self.set_animation('idle')
 
     def set_frame(self, frame):
-        new_surf, axis = frame
         self.animation_timer, frame = frame
+        new_surf, axis = frame
         self.axis = pymunk.Vec2d(axis)
         if self.flip:
             w, h = new_surf.get_size()
             new_surf = pygame.transform.flip(new_surf, 1, 0)
-            self.axis.x = w - self.axis.x
+            self.axis.x = -self.axis.x
         self.original_surface = new_surf
 
     def set_animation(self, name, func=None):
@@ -184,11 +185,10 @@ class ViewPort(pygame.sprite.Sprite):
         self.map_height = None
         self.following = None
 
-        # 0 = normal
-        # 1 = wireframe
-        # 2 = normal + wireframe overlay
-        self.draw_mode = 0
-        self.wireframe_surface = None
+        self.draw_sprites = config.getboolean('display', 'draw-sprites')
+        self.draw_map = config.getboolean('display', 'draw-map')
+        self.draw_overlay = config.getboolean('display', 'draw-physics-overlay')
+        self.overlay_surface = None
 
     def set_rect(self, rect):
         self.rect = pygame.Rect(rect)
@@ -199,13 +199,14 @@ class ViewPort(pygame.sprite.Sprite):
         self.map_height = md.height * md.tileheight
         self.center()
 
-        if self.draw_mode > 0:
+        if self.draw_overlay:
             md = self.parent.map_data
             height = md.height * md.tileheight
             width = md.width * md.width
-            self.wireframe_surface = pygame.Surface((width, height))
-            self.wireframe_surface.set_colorkey((0, 0, 0))
-            self.wireframe_surface.set_alpha(128)
+            self.overlay_surface = pygame.Surface((width, height))
+            self.overlay_surface.set_colorkey((0, 0, 0))
+            alpha = config.getint('display', 'physics-overlay-alpha')
+            self.overlay_surface.set_alpha(alpha)
 
     def add_internal(self, group):
         try:
@@ -238,43 +239,43 @@ class ViewPort(pygame.sprite.Sprite):
         if rect is not self.rect:
             self.set_rect(rect)
 
-        dirty = list()
-
         camera = self.rect.copy()
         camera.center = self.camera_vector
         self.camera_vector.x = self.map_layer.old_x
         self.camera_vector.y = self.map_layer.old_y
 
         ox, oy = self.rect.topleft
-        self.map_layer.draw(surface, self.rect)
         xx = -self.camera_vector.x + self.map_layer.half_width + ox
         yy = -self.camera_vector.y + self.map_layer.half_height + oy
 
-        # deref for speed
-        surface_blit = surface.blit
-        dirty_append = dirty.append
-        camera_collide = camera.colliderect
-        map_height = self.map_height
-        wf_surface = self.wireframe_surface
+        if self.draw_map:
+            self.map_layer.draw(surface, self.rect)
 
-        for sprite in self.parent.sprites():
+        if self.draw_sprites:
+            dirty = list()
+            surface_blit = surface.blit
+            dirty_append = dirty.append
+            camera_collide = camera.colliderect
+            map_height = self.map_height
 
-            # handle translation based on sprite sub-class
-            if isinstance(sprite, CastleBatsSprite):
-                sprite.update_image()
-                new_rect = sprite.rect.copy()
-                new_rect.y = map_height - new_rect.y - new_rect.height
-                new_rect.move_ip(*sprite.axis)
-                if camera_collide(new_rect):
-                    new_rect = new_rect.move(xx, yy)
-                    dirty_rect = surface_blit(sprite.image, new_rect)
-                    dirty_append(dirty_rect)
+            for sprite in self.parent.sprites():
+                if isinstance(sprite, CastleBatsSprite):
+                    sprite.update_image()
+                    new_rect = sprite.rect.copy()
+                    new_rect.y = map_height - new_rect.y - new_rect.height
+                    new_rect.move_ip(*sprite.axis)
 
-        if self.draw_mode > 0:
-            self.wireframe_surface.set_clip(camera)
-            self.wireframe_surface.fill((0, 0, 0))
-            pymunk_draw(wf_surface, self.parent.space)
-            surface.blit(self.wireframe_surface, (xx, yy))
+                    if camera_collide(new_rect):
+                        new_rect = new_rect.move(xx, yy)
+                        dirty_rect = surface_blit(sprite.image, new_rect)
+                        dirty_append(dirty_rect)
+
+        if self.draw_overlay:
+            overlay = self.overlay_surface
+            overlay.set_clip(camera)
+            overlay.fill((0, 0, 0))
+            pymunk_draw(overlay, self.parent.space)
+            surface.blit(overlay, (xx, yy))
 
         # TODO: dirty updates
         return self.rect

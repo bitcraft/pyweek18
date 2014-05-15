@@ -148,12 +148,12 @@ class Sprite(CastleBatsSprite):
         (animation name, ((frame duration, (x, y, w, h, x offset, y offset)...)
     """
     image_animations = [
-        ('idle', 100, ((10, 10, 34, 44, 15, 0), )),
-        ('attacking', 250, ((34, 254, 52, 52, 30, 0), )),
-        ('walking', 300, ((304, 132, 36, 40, 15, -1),
-                          (190, 130, 28, 44, 14, 0),
-                          (74, 132, 32, 40, 15, -1),
-                          (190, 130, 28, 44, 14, 0))),
+        ('idle', 100, ((10, 8, 34, 46, 0, 0), )),
+        ('attacking', 250, ((34, 252, 52, 52, 12, 0), )),
+        ('walking', 300, ((304, 128, 36, 40, 0, -1),
+                          (190, 126, 28, 44, -1, 0),
+                          (74, 128, 32, 40, 0, -1),
+                          (190, 126, 28, 44, -1, 0))),
     ]
 
     def __init__(self, shape):
@@ -200,7 +200,7 @@ def build(space):
 
     # build body
     layers = 1
-    body_rect = pygame.Rect(0, 0, 32, 48)
+    body_rect = pygame.Rect(0, 0, 32, 44)
     body_body, body_shape = make_body(body_rect)
     body_shape.layers = layers
     body_shape.friction = 1
@@ -218,8 +218,8 @@ def build(space):
 
     # jump/collision sensor
     layers = 2
-    size = body_rect.width, body_rect.height*1.1
-    offset = 0, -body_rect.height*.1
+    size = body_rect.width, body_rect.height*1.05
+    offset = 0, -body_rect.height*.05
     sensor = pymunk.Poly.create_box(body_body, size, offset)
     sensor.sensor = True
     sensor.layers = layers
