@@ -287,3 +287,27 @@ class ViewPort(pygame.sprite.Sprite):
 
         # TODO: dirty updates
         return self.rect
+
+
+def make_hitbox(body, rect):
+    """ Special polygon shape that allows a wheel foot
+    """
+    points = [rect.bottomleft, rect.bottomright, rect.midright,
+              rect.midtop, rect.midleft]
+    return pymunk.Poly(body, points, (-rect.centerx, -rect.centery))
+
+
+def make_body(rect):
+    mass = 10
+    body = pymunk.Body(mass, pymunk.inf)
+    shape = make_hitbox(body, rect)
+    return body, shape
+
+
+def make_feet(rect):
+    mass = 2
+    radius = rect.width * .45
+    inertia = pymunk.moment_for_circle(mass, 0, radius, (0, 0))
+    body = pymunk.Body(mass, inertia)
+    shape = pymunk.Circle(body, radius, (0, 0))
+    return body, shape

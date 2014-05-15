@@ -2,7 +2,7 @@ import itertools
 import pygame
 import pymunk
 from . import config
-from .sprite import CastleBatsSprite
+from .sprite import CastleBatsSprite, make_body, make_feet
 import logging
 
 logger = logging.getLogger('castlebats.zombie')
@@ -118,24 +118,6 @@ class Sprite(CastleBatsSprite):
 
 def build(space):
     logger.info('building zombie model')
-
-    def make_body(rect):
-        mass = 10
-        #inertia = pymunk.moment_for_box(mass, rect.width, rect.height)
-        inertia = pymunk.inf
-        body = pymunk.Body(mass, inertia)
-        points = [rect.bottomleft, rect.bottomright, rect.midright,
-                  rect.midtop, rect.midleft]
-        shape = pymunk.Poly(body, points, (-rect.centerx, -rect.centery))
-        return body, shape
-
-    def make_feet(rect):
-        mass = 2
-        radius = rect.width * .45
-        inertia = pymunk.moment_for_circle(mass, 0, radius, (0, 0))
-        body = pymunk.Body(mass, inertia)
-        shape = pymunk.Circle(body, radius, (0, 0))
-        return body, shape
 
     # build body
     layers = 1
