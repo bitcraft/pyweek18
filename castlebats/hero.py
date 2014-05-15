@@ -31,10 +31,8 @@ class Model(object):
         self.feet = None
         self.motor = None
         self.alive = True
-
         self.move_power = config.getint('hero', 'move')
         self.jump_power = config.getint('hero', 'jump')
-
         self.body_direction = self.RIGHT
 
     @property
@@ -68,6 +66,7 @@ class Model(object):
         shape0, shape1 = arbiter.shapes
         if shape0.collision_type == 0:
             self.grounded = True
+        return 1  # required otherwise ctypes will spam stderr
 
     def accelerate(self, direction):
         this_direction = None
@@ -134,17 +133,27 @@ class Model(object):
                 elif button == P1_UP and 'jumping' not in body.state:
                     body.change_state('jumping')
 
+            elif event.type == KEYDOWN:
+                if button == P1_UP and 'jumping' not in body.state:
+                    body.change_state('jumping')
+                    self.jump()
+
+        logger.info("hero state %s", body.state)
+
 
 class Sprite(CastleBatsSprite):
     sprite_sheet = 'hero-spritesheet'
     name = 'hero'
+    """ animation def:
+        (animation name, ((frame duration, (x, y, w, h, x offset, y offset)...)
+    """
     image_animations = [
-        ('idle', 100, ((10, 10, 34, 44, 15, 42), )),
-        ('attacking', 250, ((34, 254, 52, 52, 15, 48), )),
-        ('walking', 300, ((304, 132, 36, 40, 15, 38),
-                          (190, 130, 28, 44, 14, 40),
-                          (74, 132, 32, 40, 15, 38),
-                          (190, 130, 28, 44, 14, 40))),
+        ('idle', 100, ((10, 10, 34, 44, 15, 0), )),
+        ('attacking', 250, ((34, 254, 52, 52, 30, 0), )),
+        ('walking', 300, ((304, 132, 36, 40, 15, -1),
+                          (190, 130, 28, 44, 14, 0),
+                          (74, 132, 32, 40, 15, -1),
+                          (190, 130, 28, 44, 14, 0))),
     ]
 
     def __init__(self, shape):

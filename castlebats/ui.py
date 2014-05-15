@@ -4,25 +4,31 @@ __all__ = ['TextSprite']
 
 pygame.font.init()
 default_font = pygame.font.get_default_font()
-font = pygame.font.SysFont(default_font, 12)
+font = pygame.font.SysFont(default_font, 36)
 
 class TextSprite(pygame.sprite.DirtySprite):
     def __init__(self, text, color=None, bgcolor=None):
         super(TextSprite, self).__init__()
-        self._init = False
+        self._text_object = None
         self._text = None
         self._color = None
         self._bgcolor = None
         self.text = text
         self.color = color
         self.bgcolor = bgcolor
-        self._init = True
         self.image = None
+        self.rect = pygame.Rect(0,0,1,1)
         self.update_image()
 
+    def update(self, dt=None):
+        text = str(self._text_object)
+        if not text == self._text:
+            self._text = text
+            self.update()
 
     def update_image(self):
         self.image = font.render(self._text, 0, self._color, self._bgcolor)
+        self.rect.size = self.image.get_size()
         self.dirty = 1
 
     @property
@@ -31,7 +37,7 @@ class TextSprite(pygame.sprite.DirtySprite):
 
     @bgcolor.setter
     def bgcolor(self, value):
-        color = pygame.Color(value)
+        color = pygame.Color(*value)
         if self._bgcolor is None:
             self._bgcolor = color
             return
@@ -46,7 +52,7 @@ class TextSprite(pygame.sprite.DirtySprite):
 
     @color.setter
     def color(self, value):
-        color = pygame.Color(value)
+        color = pygame.Color(*value)
         if self._color is None:
             self._color = color
             return
@@ -63,9 +69,11 @@ class TextSprite(pygame.sprite.DirtySprite):
     def text(self, value):
         text = str(value)
         if self._text is None:
+            self._text_object = value
             self._text = text
             return
 
         if not text == self._text:
+            self._text_object = value
             self._text = text
             self.update()
