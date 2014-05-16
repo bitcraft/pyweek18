@@ -10,7 +10,7 @@ trap = 2
 # zombies, bats, boss, etc
 enemy = 3
 
-# out of bounds sensors
+# out of bounds sensors, instant kill.  for falling off map
 boundary = 4
 
 # sword
