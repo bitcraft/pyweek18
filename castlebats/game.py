@@ -29,8 +29,8 @@ class Game(object):
         self.lives = 0
         self.health = 0
         self.magic = 0
-        self.item = None
         self.time = 0
+        self.item = None
 
     def run(self):
         clock = pygame.time.Clock()
@@ -84,6 +84,7 @@ class Game(object):
 class Level(object):
     def __init__(self):
         self.time = 0
+        self.death_reset = 0
         self.buffer_rect = None
         self.buffer_surface = None
         self.running = False
@@ -106,21 +107,29 @@ class Level(object):
             if layer.name == 'Traps':
                 for index, obj in enumerate(layer):
                     obj.name = 'trap_{}'.format(index)
+            if layer.name == 'Boundaries':
+                for index, obj in enumerate(layer):
+                    obj.name = 'boundary_{}'.format(index)
 
         # set up the physics simulation
         self.space = pymunk.Space()
         self.space.gravity = (0, config.getfloat('world', 'gravity'))
         shapes = load_shapes(self.tmx_data, self.space, resources.level_xml)
 
+        # set collision types for custom objects
         for name, shape in shapes.items():
             logger.info("loaded shape: %s", name)
             if name.startswith('trap'):
                 shape.collision_type = collisions.trap
+            elif name.startswith('boundary'):
+                shape.collision_type = collisions.boundary
 
         # load the vp group and the single vp for level drawing
         self.vpgroup = sprite.ViewPortGroup(self.space, self.map_data)
         self.vp = sprite.ViewPort()
         self.vpgroup.add(self.vp)
+
+        self.new_hero()
 
     def new_hero(self):
         typed_objects = [obj for obj in self.tmx_data.getObjects()
@@ -137,7 +146,6 @@ class Level(object):
         self.add_actor(self.hero)
         self.vp.follow(self.hero.body)
         self.spawned = False
-
         resources.sounds['hero-spawn'].play()
 
     def spawn_enemy(self, name):
@@ -178,6 +186,7 @@ class Level(object):
                 self.vpgroup.remove(spr)
             if actor is self.hero:
                 self.hero = None
+                self.death_reset = self.time
             actor.kill()
             self.actors_lock.release()
         else:
@@ -220,10 +229,11 @@ class Level(object):
         step(step_amt)
         step(step_amt)
 
-        if int(self.time) % 10 == 0:
+        if self.time - self.death_reset >= 5 and not self.hero:
+            self.new_hero()
+
+        if int(self.time) % 5 == 0:
             self.spawned = False
-            if self.hero is None:
-                self.new_hero()
 
         if int(self.time) % 5 == 4 and not self.spawned:
             self.spawn_enemy('zombie')

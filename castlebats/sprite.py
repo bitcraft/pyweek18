@@ -233,6 +233,8 @@ class ViewPort(pygame.sprite.Sprite):
         self.map_height = md.height * md.tileheight
         self.center()
 
+        #self.camera_vector = pymunk.Vec2d(rect.center)
+
         if self.draw_overlay:
             md = self.parent.map_data
             height = md.height * md.tileheight

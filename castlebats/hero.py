@@ -59,10 +59,6 @@ class Model(models.UprightModel):
                   collisions.trap, collisions.enemy):
             space.remove_collision_handler(collisions.hero, i)
         space.remove_collision_handler(collisions.hero_sword, collisions.enemy)
-        del self.body
-        del self.feet
-        del self.motor
-        del self.joint
         del self.sword_sensor
 
         super(Model, self).kill()
@@ -80,24 +76,24 @@ class Model(models.UprightModel):
 
         if shape1.collision_type == collisions.geometry:
             self.grounded = True
-            return 1
+            return True
 
         elif shape1.collision_type == collisions.trap:
             self.alive = False
             self.body.change_state('die')
-            return 0
+            return False
 
         elif shape1.collision_type == collisions.enemy:
             self.alive = False
             self.body.change_state('die')
-            return 0
+            return False
 
         elif shape1.collision_type == collisions.boundary:
             self.alive = False
-            return 1
+            return False
 
         else:
-            return 1
+            return True
 
     def on_sword_collision(self, space, arbiter):
         shape0, shape1 = arbiter.shapes
