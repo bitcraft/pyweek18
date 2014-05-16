@@ -23,7 +23,6 @@ class CastleBatsSprite(pygame.sprite.Sprite):
     sprite tracks one pymunk shape and can draw it to a viewport
     """
     animations = {}
-    sounds = {}
     loaded = False
 
     def __init__(self, shape):

@@ -1,6 +1,7 @@
 import itertools
 import pygame
 import pymunk
+from . import models
 from . import collisions
 from . import config
 from .sprite import CastleBatsSprite, make_body, make_feet
@@ -9,7 +10,7 @@ import logging
 logger = logging.getLogger('castlebats.zombie')
 
 
-class Model(object):
+class Model(models.UprightModel):
     """
     ZOMBIE
 
@@ -19,93 +20,26 @@ class Model(object):
     LEFT = -1
 
     def __init__(self):
-        self.body = None
-        self.feet = None
-        self.motor = None
-        self.joint = None
+        super(Model, self).__init__()
         self.sensor = None
-        self.alive = True
         self.move_power = config.getint('zombie', 'move')
         self.jump_power = config.getint('zombie', 'jump')
-        self.body_direction = self.RIGHT
-
-    def __del__(self):
-        logger.info("garbage collecting %s", self)
+        self.body_direction = self.LEFT
 
     def kill(self):
         space = self.body.shape.body._space
-        self.body.kill()
-        self.feet.kill()
-        space.remove(self.joint, self.motor, self.sensor)
+        space.remove(self.sensor)
+        super(Model, self).kill()
 
-        del self.body
-        del self.feet
-        del self.motor
-        del self.joint
-        del self.sensor
-
-    @property
-    def grounded(self):
-        return 'jumping' in self.body.state
-
-    @grounded.setter
-    def grounded(self, value):
-        if value:
-            if 'jumping' in self.body.state:
-                self.body.state.remove('jumping')
-                self.body.change_state()
-        else:
-            if 'jumping' not in self.body.state:
-                self.body.change_state('jumping')
-
-    @property
-    def sprites(self):
-        return [self.body]
-
-    @property
-    def position(self):
-        return self.feet.shape.body.position
-
-    @position.setter
-    def position(self, value):
-        position = pymunk.Vec2d(value)
-        self.body.shape.body.position += position
-        self.feet.shape.body.position += position
-
-    def on_collision(self, space, arbiter):
-        shape0, shape1 = arbiter.shapes
-        if shape0.collision_type == 0:
-            self.grounded = True
-        return 1  # required otherwise ctypes will spam stderr
-
-    def accelerate(self, direction):
-        this_direction = None
-        if direction > 0:
-            this_direction = self.RIGHT
-        if direction < 0:
-            this_direction = self.LEFT
-
-        if not this_direction == self.body_direction:
-            self.body.flip = this_direction == self.LEFT
-            self.body_direction = this_direction
-
-        amt = direction * self.move_power
-        self.motor.max_force = pymunk.inf
-        self.motor.rate = amt
-
-    def brake(self):
-        self.motor.rate = 0
-        self.motor.max_force = pymunk.inf
-
-    def jump(self):
-        impulse = (0, self.jump_power)
-        self.body.shape.body.apply_impulse(impulse)
+    # def on_collision(self, space, arbiter):
+    #     shape0, shape1 = arbiter.shapes
+    #     if shape0.collision_type == collisions.geometry:
+    #         self.grounded = True
+    #     return 1  # required otherwise ctypes will spam stderr
 
     def update(self, dt):
-        # do not update the sprites!
         if self.motor.rate == 0:
-            self.accelerate(self.LEFT)
-        pass
+            self.accelerate(self.body_direction)
 
 
 class Sprite(CastleBatsSprite):
@@ -115,16 +49,17 @@ class Sprite(CastleBatsSprite):
         (animation name, ((frame duration, (x, y, w, h, x offset, y offset)...)
     """
     image_animations = [
-        ('walking', 180, ((27, 0, 28, 48, 0, 2),
-                          (55, 0, 28, 48, 0, 2),
-                          (82, 0, 28, 48, 0, 2),
+        ('idle',    100, ((27,  0, 28, 48, 0, 2), )),
+        ('walking', 180, ((27,  0, 28, 48, 0, 2),
+                          (55,  0, 28, 48, 0, 2),
+                          (82,  0, 28, 48, 0, 2),
                           (108, 0, 28, 48, 0, 2))),
     ]
 
     def __init__(self, shape):
         super(Sprite, self).__init__(shape)
         self.load_animations()
-        self.change_state('walking')
+        self.change_state('idle')
 
     def change_state(self, state=None):
         if state:
