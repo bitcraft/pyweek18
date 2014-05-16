@@ -32,10 +32,12 @@ def load():
 
     level_xml = _jpath(resource_path, 'maps', 'objects.xml')
 
+    vol = config.getint('sound', 'sound-volume') / 100.
     for name, filename in config.items('sound-files'):
         path = _jpath(resource_path, 'sounds', filename)
         logger.info("loading %s", path)
         sound = pygame.mixer.Sound(path)
+        sound.set_volume(vol)
         sounds[name] = sound
         yield sound
 

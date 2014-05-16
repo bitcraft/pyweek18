@@ -93,7 +93,13 @@ class CastleBatsSprite(pygame.sprite.Sprite):
                     self.set_frame(next(self.current_animation))
                     self.animation_timer += over
                 except StopIteration:
-                    self.set_animation('idle')
+                    try:
+                        # remove the old animation
+                        self.state.pop()
+                        animation = self.state.pop()
+                    except IndexError:
+                        animation = 'idle'
+                    self.change_state(animation)
 
     def set_frame(self, frame):
         self.animation_timer, frame = frame
@@ -107,6 +113,8 @@ class CastleBatsSprite(pygame.sprite.Sprite):
 
     def set_animation(self, name, func=None):
         self.animation_timer, animation = self.animations[name]
+
+        logger.info("%s set animation %s", self, name)
 
         if func:
             if len(animation) == 1:

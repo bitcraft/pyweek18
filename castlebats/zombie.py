@@ -22,10 +22,27 @@ class Model(object):
         self.body = None
         self.feet = None
         self.motor = None
+        self.joint = None
+        self.sensor = None
         self.alive = True
         self.move_power = config.getint('zombie', 'move')
         self.jump_power = config.getint('zombie', 'jump')
         self.body_direction = self.RIGHT
+
+    def __del__(self):
+        logger.info("garbage collecting %s", self)
+
+    def kill(self):
+        space = self.body.shape.body._space
+        self.body.kill()
+        self.feet.kill()
+        space.remove(self.joint, self.motor, self.sensor)
+
+        del self.body
+        del self.feet
+        del self.motor
+        del self.joint
+        del self.sensor
 
     @property
     def grounded(self):
@@ -126,7 +143,6 @@ def build(space):
     layers = 1
     body_rect = pygame.Rect(0, 0, 32, 47)
     body_body, body_shape = make_body(body_rect)
-    body_shape.collision_type = collisions.enemy
     body_shape.elasticity = 0
     body_shape.layers = layers
     body_shape.friction = 1
@@ -136,22 +152,18 @@ def build(space):
     # build feet
     layers = 2
     feet_body, feet_shape = make_feet(body_rect)
-    feet_shape.collision_type = collisions.enemy
     feet_shape.elasticity = 0
     feet_shape.layers = layers
     feet_shape.friction = pymunk.inf
-    feet_shape.actor = model
     feet_sprite = CastleBatsSprite(feet_shape)
     space.add(feet_body, feet_shape)
 
     # jump/collision sensor
-    layers = 2
     size = body_rect.width, body_rect.height * 1.05
     offset = 0, -body_rect.height * .05
     sensor = pymunk.Poly.create_box(body_body, size, offset)
     sensor.collision_type = collisions.enemy
     sensor.sensor = True
-    sensor.layers = layers
     sensor.actor = model
     space.add(sensor)
 
@@ -169,5 +181,7 @@ def build(space):
     model.body = body_sprite
     model.feet = feet_sprite
     model.motor = motor
+    model.joint = joint
+    model.sensor = sensor
 
     return model
