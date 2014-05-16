@@ -61,10 +61,15 @@ def load():
 
 
 def play_music(name):
+    from . import config
+
     try:
         track = music[name]
         logger.info("playing %s", track)
-        pygame.mixer.music.load(track)
-        pygame.mixer.music.play(-1)
+        vol = config.getint('sound', 'music-volume') / 100.
+        if vol > 0:
+            pygame.mixer.music.set_volume(vol)
+            pygame.mixer.music.load(track)
+            pygame.mixer.music.play(-1)
     except pygame.error:
         pass

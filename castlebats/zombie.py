@@ -1,6 +1,7 @@
 import itertools
 import pygame
 import pymunk
+from . import collisions
 from . import config
 from .sprite import CastleBatsSprite, make_body, make_feet
 import logging
@@ -119,10 +120,14 @@ class Sprite(CastleBatsSprite):
 def build(space):
     logger.info('building zombie model')
 
+    model = Model()
+
     # build body
     layers = 1
     body_rect = pygame.Rect(0, 0, 32, 47)
     body_body, body_shape = make_body(body_rect)
+    body_shape.collision_type = collisions.enemy
+    body_shape.elasticity = 0
     body_shape.layers = layers
     body_shape.friction = 1
     body_sprite = Sprite(body_shape)
@@ -131,9 +136,11 @@ def build(space):
     # build feet
     layers = 2
     feet_body, feet_shape = make_feet(body_rect)
-    feet_shape.collision_type = 1
+    feet_shape.collision_type = collisions.enemy
+    feet_shape.elasticity = 0
     feet_shape.layers = layers
     feet_shape.friction = pymunk.inf
+    feet_shape.actor = model
     feet_sprite = CastleBatsSprite(feet_shape)
     space.add(feet_body, feet_shape)
 
@@ -142,9 +149,10 @@ def build(space):
     size = body_rect.width, body_rect.height * 1.05
     offset = 0, -body_rect.height * .05
     sensor = pymunk.Poly.create_box(body_body, size, offset)
+    sensor.collision_type = collisions.enemy
     sensor.sensor = True
     sensor.layers = layers
-    sensor.collision_type = 1
+    sensor.actor = model
     space.add(sensor)
 
     # attach feet to body
@@ -158,7 +166,6 @@ def build(space):
     space.add(motor, joint)
 
     # the model is used to gameplay logic
-    model = Model()
     model.body = body_sprite
     model.feet = feet_sprite
     model.motor = motor

@@ -7,6 +7,7 @@ from pymunktmx.shapeloader import load_shapes
 from pygame.locals import *
 
 import logging
+
 logger = logging.getLogger('castlebats.game')
 
 from . import collisions
@@ -17,7 +18,7 @@ from . import zombie
 from . import sprite
 from . import config
 
-COLLISION_LAYERS = [2**i for i in range(32)]
+COLLISION_LAYERS = [2 ** i for i in range(32)]
 
 
 class Game(object):
@@ -51,7 +52,7 @@ class Game(object):
         c = (255, 255, 255)
         bg = (0, 0, 0)
         s = ui.TextSprite(self.score, c, bg)
-        s.rect.topleft = (0,0)
+        s.rect.topleft = (0, 0)
         hud_group.add(s)
 
         state = self.states[0]
@@ -132,11 +133,20 @@ class Level(object):
         self.hero = hero.build(self.space)
         self.hero.position = hero_coords
         self.add_actor(self.hero)
-        self.vp.follow(self.hero.feet)
+        self.vp.follow(self.hero.body)
 
-        #zomb = zombie.build(self.space)
-        #zomb.position = hero_coords + (200, 0)
-        #self.add_actor(zomb)
+        self.spawned = False
+
+    def spawn_enemy(self, name):
+        if not self.hero:
+            return
+
+        hero_position = self.hero.position
+
+        if name == 'zombie':
+            zomb = zombie.build(self.space)
+            zomb.position = hero_position + (200, 0)
+            self.add_actor(zomb)
 
     def translate(self, coords):
         return pymunk.Vec2d(coords[0], self.map_height - coords[1])
@@ -163,6 +173,9 @@ class Level(object):
             self.actors.remove(actor)
             for spr in actor.sprites:
                 self.vpgroup.remove(spr)
+            if actor is self.hero:
+                self.hero = None
+            actor.kill()
             self.actors_lock.release()
         else:
             self._remove_queue.add(actor)
@@ -191,7 +204,8 @@ class Level(object):
                     self.running = False
                     break
 
-            self.hero.handle_input(event)
+            if self.hero:
+                self.hero.handle_input(event)
 
     def update(self, dt):
         seconds = dt / 1000.
@@ -203,6 +217,13 @@ class Level(object):
         step(step_amt)
         step(step_amt)
 
+        if int(self.time) % 5 == 0:
+            self.spawned = False
+
+        if int(self.time) % 5 == 4 and not self.spawned:
+            self.spawn_enemy('zombie')
+            self.spawned = True
+
         self.vpgroup.update(dt)
 
         with self.actors_lock:
@@ -210,14 +231,9 @@ class Level(object):
                 if actor.alive:
                     actor.update(dt)
 
-                #if actor.body.bbox.bottom > 1800:
-                #    actor.alive = False
-
                 # do not add else here
                 if not actor.alive:
                     self.remove_actor(actor)
-                    #if actor is self.hero:
-                    #    self.new_hero()
 
         for actor in self._remove_queue:
             self.remove_actor(actor)
@@ -227,5 +243,3 @@ class Level(object):
 
         self._remove_queue = set()
         self._add_queue = set()
-
-
