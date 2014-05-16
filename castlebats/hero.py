@@ -145,7 +145,7 @@ class Model(object):
 
     def uncrouch(self):
         self.body.state.remove('crouching')
-        self.body.change_state('idle')
+        self.body.change_state('standup')
 
         pymunk_body = self.body.shape.body
         pymunk_feet = self.feet.shape.body
@@ -282,7 +282,8 @@ class Sprite(CastleBatsSprite):
     """
     image_animations = [
         ('idle', 100, ((10, 6, 34, 48, 0, 0), )),
-        ('crouching', 100, ((248, 22, 23, 34, 0, 0), )),
+        ('crouching', 100, ((247, 22, 34, 35, 0, 0), )),
+        ('standup', 50, ((189, 19, 35, 37, 0, 0), )),
         ('jumping', 100, ((128, 62, 47, 49, 0, 0), )),
         ('attacking', 40, ((16, 188, 49, 50, 3, 0),
                            (207, 190, 42, 48, 6, 0),
@@ -302,7 +303,6 @@ class Sprite(CastleBatsSprite):
         self.change_state('idle')
 
     def change_state(self, state=None):
-
         if state:
             self.state.append(state)
 
@@ -317,6 +317,11 @@ class Sprite(CastleBatsSprite):
             resources.sounds['hurt'].play()
             self.set_animation('hurt')
             self.state.remove('die')
+
+        elif 'standup' in self.state:
+            self.set_animation('standup')
+            self.state.append('idle')
+            self.state.remove('standup')
 
         elif 'attacking' in self.state:
             resources.sounds['sword'].stop()
