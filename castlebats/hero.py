@@ -42,6 +42,7 @@ class Model(object):
         self.feet = None
         self.motor = None
         self.joint = None
+        self.sword_sensor = None
         self.alive = True
 
         # this is the normal hitbox
@@ -51,6 +52,9 @@ class Model(object):
         # this is the hitbox for the crouched state
         self.crouched_rect = pygame.Rect(0, 0, 24, 32)
         self.crouched_feet_offset = (0, 0)
+
+        # position the sword sensor in fron of the model
+        self.sword_offset = pymunk.Vec2d(self.normal_rect.width * .80, 0)
 
         self.move_power = config.getint('hero', 'move')
         self.jump_power = config.getint('hero', 'jump')
@@ -63,15 +67,18 @@ class Model(object):
         space = self.body.shape.body._space
         self.body.kill()
         self.feet.kill()
-        space.remove(self.joint, self.motor)
+        space.remove(self.joint, self.motor, self.sword_sensor)
         for i in (collisions.geometry, collisions.boundary,
                   collisions.trap, collisions.enemy):
             space.remove_collision_handler(collisions.hero, i)
+
+        space.remove_collision_handler(collisions.hero_sword, collisions.enemy)
 
         del self.body
         del self.feet
         del self.motor
         del self.joint
+        del self.sword_sensor
 
     @property
     def grounded(self):
@@ -122,13 +129,9 @@ class Model(object):
             return 0
 
         elif shape1.collision_type == collisions.enemy:
-            if 'attacking' in self.body.state:
-                shape1.actor.alive = False
-                return 0
-            else:
-                self.alive = False
-                self.body.change_state('die')
-                return 0
+            self.alive = False
+            self.body.change_state('die')
+            return 0
 
         elif shape1.collision_type == collisions.boundary:
             self.alive = False
@@ -136,6 +139,22 @@ class Model(object):
 
         else:
             return 1
+
+    def on_sword_collision(self, space, arbiter):
+        shape0, shape1 = arbiter.shapes
+
+        logger.info('sword collision %s, %s, %s, %s, %s, %s',
+                    shape0.collision_type,
+                    shape1.collision_type,
+                    arbiter.elasticity,
+                    arbiter.friction,
+                    arbiter.is_first_contact,
+                    arbiter.total_impulse)
+
+        if shape1.collision_type == collisions.enemy:
+            if 'attacking' in self.body.state:
+                shape1.actor.alive = False
+            return 0
 
     @staticmethod
     def normal_feet_position(position, feet_shape):
@@ -170,11 +189,10 @@ class Model(object):
         new_shape.collision_type = old_shape.collision_type
         self.body.shape = new_shape
 
+        space.remove(self.joint)
         space.remove(old_shape)
         space.add(new_shape)
 
-        # kill the joint
-        space.remove(self.joint)
         self.joint = None
 
     def uncrouch(self):
@@ -229,8 +247,10 @@ class Model(object):
         this_direction = None
         if direction > 0:
             this_direction = self.RIGHT
+            self.sword_sensor.offset = self.sword_offset
         if direction < 0:
             this_direction = self.LEFT
+            self.sword_sensor.offset = -self.sword_offset
 
         if not this_direction == self.body_direction:
             self.body.flip = this_direction == self.LEFT
@@ -338,7 +358,13 @@ class Sprite(CastleBatsSprite):
 
     def change_state(self, state=None):
         if state:
-            self.state.append(state)
+            if self.state == ['idle']:
+                self.state = [state]
+            else:
+                self.state.append(state)
+
+        if not self.state:
+            self.state = ['idle']
 
         if 'hurt' in self.state:
             resources.sounds['hurt'].stop()
@@ -347,21 +373,17 @@ class Sprite(CastleBatsSprite):
             self.state.remove('hurt')
 
         elif 'die' in self.state:
-            resources.sounds['hurt'].stop()
-            resources.sounds['hurt'].play()
+            #resources.sounds['hero-death'].play()
             self.set_animation('hurt')
             self.state.remove('die')
 
         elif 'standup' in self.state:
             self.set_animation('standup')
-            self.state.append('idle')
-            self.state.remove('standup')
 
         elif 'attacking' in self.state:
             resources.sounds['sword'].stop()
             resources.sounds['sword'].play()
             self.set_animation('attacking')
-            self.state.remove('attacking')
 
         elif 'jumping' in self.state:
             self.set_animation('jumping', itertools.repeat)
@@ -411,6 +433,13 @@ def build(space):
     #sensor.collision_type = collisions.hero
     #space.add(sensor)
 
+    # attack sensor
+    size = model.normal_rect.width, model.normal_rect.height * .60
+    sensor = pymunk.Poly.create_box(body_body, size, model.sword_offset)
+    sensor.sensor = True
+    sensor.collision_type = collisions.hero_sword
+    space.add(sensor)
+
     # attach feet to body
     feet_body.position = model.normal_feet_position(
         body_body.position,
@@ -427,9 +456,13 @@ def build(space):
     model.feet = feet_sprite
     model.joint = joint
     model.motor = motor
+    model.sword_sensor = sensor
 
     for i in (collisions.geometry, collisions.boundary,
               collisions.trap, collisions.enemy):
         space.add_collision_handler(collisions.hero, i, model.on_collision)
+
+    space.add_collision_handler(collisions.hero_sword, collisions.enemy,
+                                model.on_sword_collision)
 
     return model

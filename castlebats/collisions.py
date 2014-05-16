@@ -12,3 +12,6 @@ enemy = 3
 
 # out of bounds sensors
 boundary = 4
+
+# sword
+hero_sword = 5

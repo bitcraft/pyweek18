@@ -89,6 +89,7 @@ class Level(object):
         self.running = False
         self.actors = set()
         self.hero = None
+        self.spawned = False
         self.actors_lock = threading.Lock()
         self.hud_group = pygame.sprite.Group()
         self._add_queue = set()
@@ -121,6 +122,7 @@ class Level(object):
         self.vp = sprite.ViewPort()
         self.vpgroup.add(self.vp)
 
+    def new_hero(self):
         typed_objects = [obj for obj in self.tmx_data.getObjects()
                          if obj.type is not None]
 
@@ -134,8 +136,9 @@ class Level(object):
         self.hero.position = hero_coords
         self.add_actor(self.hero)
         self.vp.follow(self.hero.body)
-
         self.spawned = False
+
+        resources.sounds['hero-spawn'].play()
 
     def spawn_enemy(self, name):
         if not self.hero:
@@ -217,8 +220,10 @@ class Level(object):
         step(step_amt)
         step(step_amt)
 
-        if int(self.time) % 5 == 0:
+        if int(self.time) % 10 == 0:
             self.spawned = False
+            if self.hero is None:
+                self.new_hero()
 
         if int(self.time) % 5 == 4 and not self.spawned:
             self.spawn_enemy('zombie')
