@@ -10,6 +10,7 @@ import pygame
 import pymunk
 import pyscroll
 import logging
+import weakref
 
 logger = logging.getLogger("castlebats.sprite")
 
@@ -18,6 +19,9 @@ from . import config
 
 
 class CastleBatsSprite(pygame.sprite.Sprite):
+    """
+    sprite tracks one pymunk shape and can draw it to a viewport
+    """
     animations = {}
     sounds = {}
     loaded = False
@@ -33,6 +37,21 @@ class CastleBatsSprite(pygame.sprite.Sprite):
         self.animation_timer = 0
         self.original_surface = None
         self.current_animation = []
+
+    def __del__(self):
+        logger.info("garbage collecting %s", self)
+
+    def kill(self):
+        """
+        remove all the physics stuff from the space
+        """
+        space = self.shape.body._space
+        if self.shape.body in space.bodies:
+            space.remove(self.shape.body)
+        space.remove(self.shape)
+        del self.shape
+        del self.original_surface
+        super(CastleBatsSprite, self).kill()
 
     @classmethod
     def load_animations(cls):
@@ -168,6 +187,10 @@ class ViewPortGroup(pygame.sprite.Group):
             if self.rect is not None:
                 self.resize()
         else:
+            # handle in case the vp is following this sprite
+            for vp in self.viewports.keys():
+                if vp.following is sprite:
+                    vp.follow(None)
             super(ViewPortGroup, self).remove_internal(sprite)
 
     def clear(self):
@@ -221,8 +244,15 @@ class ViewPort(pygame.sprite.Sprite):
         super(ViewPort, self).add_internal(group)
         self.parent = group
 
-    def follow(self, body):
-        self.following = body
+    def follow(self, sprite):
+        """
+        only follow a sprite, not a pymunk shape
+        """
+        if sprite is None:
+            self.following = None
+        else:
+            assert(isinstance(sprite, CastleBatsSprite))
+            self.following = sprite
 
     def center(self):
         if self.rect is None:

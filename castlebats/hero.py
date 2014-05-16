@@ -56,6 +56,23 @@ class Model(object):
         self.jump_power = config.getint('hero', 'jump')
         self.body_direction = self.RIGHT
 
+    def __del__(self):
+        logger.info("garbage collecting %s", self)
+
+    def kill(self):
+        space = self.body.shape.body._space
+        self.body.kill()
+        self.feet.kill()
+        space.remove(self.joint, self.motor)
+        for i in (collisions.geometry, collisions.boundary,
+                  collisions.trap, collisions.enemy):
+            space.remove_collision_handler(collisions.hero, i)
+
+        del self.body
+        del self.feet
+        del self.motor
+        del self.joint
+
     @property
     def grounded(self):
         return 'jumping' in self.body.state
@@ -85,12 +102,16 @@ class Model(object):
         self.feet.shape.body.position += position
 
     def on_collision(self, space, arbiter):
-        logger.info('hero collision %s, %s, %s, %s', arbiter.elasticity,
-                                                     arbiter.friction,
-                                                     arbiter.is_first_contact,
-                                                     arbiter.total_impulse)
-
         shape0, shape1 = arbiter.shapes
+
+        logger.info('hero collision %s, %s, %s, %s, %s, %s',
+                    shape0.collision_type,
+                    shape1.collision_type,
+                    arbiter.elasticity,
+                    arbiter.friction,
+                    arbiter.is_first_contact,
+                    arbiter.total_impulse)
+
         if shape1.collision_type == collisions.geometry:
             self.grounded = True
             return 1
@@ -99,6 +120,19 @@ class Model(object):
             self.alive = False
             self.body.change_state('die')
             return 0
+
+        elif shape1.collision_type == collisions.enemy:
+            if 'attacking' in self.body.state:
+                shape1.actor.alive = False
+                return 0
+            else:
+                self.alive = False
+                self.body.change_state('die')
+                return 0
+
+        elif shape1.collision_type == collisions.boundary:
+            self.alive = False
+            return 1
 
         else:
             return 1
@@ -350,9 +384,10 @@ def build(space):
     # build body
     layers = 1
     body_body, body_shape = make_body(model.normal_rect)
+    body_body.collision_type = collisions.hero
+    body_shape.elasticity = 0
     body_shape.layers = layers
     body_shape.friction = pymunk.inf
-    body_shape.elasticity = 0
     body_sprite = Sprite(body_shape)
     space.add(body_body, body_shape)
 
@@ -360,9 +395,9 @@ def build(space):
     layers = 2
     feet_body, feet_shape = make_feet(model.normal_rect)
     feet_shape.collision_type = collisions.hero
+    feet_shape.elasticity = 0
     feet_shape.layers = layers
     feet_shape.friction = pymunk.inf
-    feet_shape.elasticity = 0
     feet_sprite = CastleBatsSprite(feet_shape)
     space.add(feet_body, feet_shape)
 
@@ -393,11 +428,8 @@ def build(space):
     model.joint = joint
     model.motor = motor
 
-    space.add_collision_handler(collisions.hero,
-                                collisions.geometry,
-                                model.on_collision)
+    for i in (collisions.geometry, collisions.boundary,
+              collisions.trap, collisions.enemy):
+        space.add_collision_handler(collisions.hero, i, model.on_collision)
 
-    space.add_collision_handler(collisions.hero,
-                                collisions.trap,
-                                model.on_collision)
     return model
