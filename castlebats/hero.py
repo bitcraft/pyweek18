@@ -4,6 +4,7 @@ import pymunk
 from . import collisions
 from . import config
 from . import resources
+from . import models
 from .sprite import CastleBatsSprite
 from .sprite import make_body
 from .sprite import make_feet
@@ -27,23 +28,14 @@ KEY_MAP = {
 #####################################
 
 
-class Model(object):
+class Model(models.UprightModel):
     """
-    contains the castlebatssprites (CBS) and responds to controls
-    
     CBS contain animations, a simple state machine, and references to the pymunk
     objects that they represent.
     """
-    RIGHT = 1
-    LEFT = -1
-
     def __init__(self):
-        self.body = None
-        self.feet = None
-        self.motor = None
-        self.joint = None
+        super(Model, self).__init__()
         self.sword_sensor = None
-        self.alive = True
 
         # this is the normal hitbox
         self.normal_rect = pygame.Rect(0, 0, 32, 40)
@@ -60,53 +52,20 @@ class Model(object):
         self.jump_power = config.getint('hero', 'jump')
         self.body_direction = self.RIGHT
 
-    def __del__(self):
-        logger.info("garbage collecting %s", self)
-
     def kill(self):
         space = self.body.shape.body._space
-        self.body.kill()
-        self.feet.kill()
-        space.remove(self.joint, self.motor, self.sword_sensor)
+        space.remove(self.sword_sensor)
         for i in (collisions.geometry, collisions.boundary,
                   collisions.trap, collisions.enemy):
             space.remove_collision_handler(collisions.hero, i)
-
         space.remove_collision_handler(collisions.hero_sword, collisions.enemy)
-
         del self.body
         del self.feet
         del self.motor
         del self.joint
         del self.sword_sensor
 
-    @property
-    def grounded(self):
-        return 'jumping' in self.body.state
-
-    @grounded.setter
-    def grounded(self, value):
-        if value:
-            if 'jumping' in self.body.state:
-                self.body.state.remove('jumping')
-                self.body.change_state()
-        else:
-            if 'jumping' not in self.body.state:
-                self.body.change_state('jumping')
-
-    @property
-    def sprites(self):
-        return [self.body]
-
-    @property
-    def position(self):
-        return self.feet.shape.body.position
-
-    @position.setter
-    def position(self, value):
-        position = pymunk.Vec2d(value)
-        self.body.shape.body.position += position
-        self.feet.shape.body.position += position
+        super(Model, self).kill()
 
     def on_collision(self, space, arbiter):
         shape0, shape1 = arbiter.shapes
@@ -241,42 +200,15 @@ class Model(object):
         self.joint = joint
 
     def accelerate(self, direction):
-        self.body.state.remove('idle')
-        self.body.change_state('walking')
-
-        this_direction = None
+        super(Model, self).accelerate(direction)
         if direction > 0:
-            this_direction = self.RIGHT
             self.sword_sensor.offset = self.sword_offset
         if direction < 0:
-            this_direction = self.LEFT
             self.sword_sensor.offset = -self.sword_offset
-
-        if not this_direction == self.body_direction:
-            self.body.flip = this_direction == self.LEFT
-            self.body_direction = this_direction
-
-        amt = direction * self.move_power
-        self.motor.max_force = pymunk.inf
-        self.motor.rate = amt
-
-    def brake(self):
-        self.body.state.remove('walking')
-        self.body.change_state('idle')
-        self.motor.rate = 0
-        self.motor.max_force = pymunk.inf
-
-    def jump(self):
-        impulse = (0, self.jump_power)
-        self.body.shape.body.apply_impulse(impulse)
 
     def attack(self):
         if 'attacking' not in self.body.state:
             self.body.change_state('attacking')
-
-    def update(self, dt):
-        # do not update the sprites!
-        pass
 
     def handle_input(self, event):
         # big ugly bunch of if statements... poor man's state machine
@@ -335,20 +267,20 @@ class Sprite(CastleBatsSprite):
         (animation name, ((frame duration, (x, y, w, h, x offset, y offset)...)
     """
     image_animations = [
-        ('idle', 100, ((10, 6, 34, 48, 0, 0), )),
-        ('crouching', 100, ((247, 22, 34, 35, 0, 0), )),
-        ('standup', 50, ((189, 19, 35, 37, 0, 0), )),
-        ('jumping', 100, ((128, 62, 47, 49, 0, 0), )),
-        ('attacking', 40, ((16, 188, 49, 50, 3, 0),
-                           (207, 190, 42, 48, 6, 0),
-                           (34, 250, 52, 54, 15, 0),
-                           (194, 256, 50, 46, -6, 0))),
-        ('walking', 100, ((304, 128, 36, 40, 0, -1),
-                          (190, 126, 28, 44, -1, 0),
-                          (74, 128, 32, 40, 0, -1),
-                          (190, 126, 28, 44, -1, 0))),
-        ('hurt', 50, ((307, 4, 50, 50, 0, 0),
-                      (365, 4, 50, 50, 0, 0))),
+        ('idle',      100, ((10,    6, 34, 48,  0,  0), )),
+        ('crouching', 100, ((247,  22, 34, 35,  0,  0), )),
+        ('standup',    50, ((189,  19, 35, 37,  0,  0), )),
+        ('jumping',   100, ((128,  62, 47, 49,  0,  0), )),
+        ('attacking',  40, ((16,  188, 49, 50,  3,  0),
+                           (207,  190, 42, 48,  6,  0),
+                           (34,   250, 52, 54, 15,  0),
+                           (194,  256, 50, 46, -6,  0))),
+        ('walking',   100, ((304, 128, 36, 40,  0, -1),
+                            (190, 126, 28, 44, -1,  0),
+                            (74,  128, 32, 40,  0, -1),
+                            (190, 126, 28, 44, -1,  0))),
+        ('hurt',       50, ((307,   4, 50, 50,  0,  0),
+                            (365,   4, 50, 50,  0,  0))),
     ]
 
     def __init__(self, shape):
