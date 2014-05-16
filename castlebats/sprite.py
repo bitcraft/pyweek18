@@ -69,8 +69,10 @@ class CastleBatsSprite(pygame.sprite.Sprite):
         if self.animation_timer > 0:
             self.animation_timer -= dt
             if self.animation_timer <= 0:
+                over = self.animation_timer
                 try:
                     self.set_frame(next(self.current_animation))
+                    self.animation_timer += over
                 except StopIteration:
                     self.set_animation('idle')
 
