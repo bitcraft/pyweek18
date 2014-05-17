@@ -17,8 +17,15 @@ from . import hero
 from . import zombie
 from . import sprite
 from . import config
+from . import models
 
 COLLISION_LAYERS = [2 ** i for i in range(32)]
+
+
+def ignore_gravity(body, gravity, damping, dt):
+    gravity.x = 0
+    gravity.y = 0
+    return None
 
 
 class Game(object):
@@ -88,10 +95,10 @@ class Level(object):
         self.buffer_rect = None
         self.buffer_surface = None
         self.running = False
-        self.actors = set()
+        self.models = set()
         self.hero = None
         self.spawned = False
-        self.actors_lock = threading.Lock()
+        self.models_lock = threading.Lock()
         self.hud_group = pygame.sprite.Group()
         self._add_queue = set()
         self._remove_queue = set()
@@ -110,26 +117,69 @@ class Level(object):
             if layer.name == 'Boundaries':
                 for index, obj in enumerate(layer):
                     obj.name = 'boundary_{}'.format(index)
+            if layer.name == 'Physics':
+                for index, obj in enumerate(layer):
+                    pass
 
         # set up the physics simulation
         self.space = pymunk.Space()
         self.space.gravity = (0, config.getfloat('world', 'gravity'))
-        shapes = load_shapes(self.tmx_data, self.space, resources.level_xml)
 
-        # set collision types for custom objects
-        for name, shape in shapes.items():
-            logger.info("loaded shape: %s", name)
-            if name.startswith('trap'):
-                shape.collision_type = collisions.trap
-            elif name.startswith('boundary'):
-                shape.collision_type = collisions.boundary
+
+        shapes = load_shapes(self.tmx_data, self.space, resources.level_xml)
 
         # load the vp group and the single vp for level drawing
         self.vpgroup = sprite.ViewPortGroup(self.space, self.map_data)
         self.vp = sprite.ViewPort()
         self.vpgroup.add(self.vp)
 
+        # set collision types for custom objects
+        # and add platforms
+        for name, shape in shapes.items():
+            logger.info("loaded shape: %s", name)
+            if name.startswith('trap'):
+                shape.collision_type = collisions.trap
+            elif name.startswith('boundary'):
+                shape.collision_type = collisions.boundary
+            elif name.startswith('moving'):
+                self.handle_moving_platform(shape)
+
         self.new_hero()
+
+    def handle_moving_platform(self, shape):
+        logger.info('loading moving platform %s', shape)
+
+        assert(not shape.body.is_static)
+
+        shape.layers = 3
+        shape.collision_type = 0
+        shape.body.velocity_func = ignore_gravity
+        shape.body.moment = pymunk.inf
+
+        shape.cache_bb()
+        bb = shape.bb
+        rect = pygame.Rect((bb.left, bb.top,
+                            bb.right - bb.left, bb.top - bb.bottom))
+        rect.normalize()
+
+        anchor1 = shape.body.position
+        anchor2 = shape.body.position - (0, 100)
+
+        joint = pymunk.GrooveJoint(self.space.static_body, shape.body,
+                                   anchor1, anchor2, (0, 0))
+
+        self.space.add(joint)
+
+        s = pygame.Surface((rect.width, rect.height))
+        s.set_colorkey((0, 0, 0))
+        s.fill((200, 200, 200))
+        pygame.draw.rect(s, (0, 0, 0), (0, 0, rect.width, rect.height), 1)
+        spr = sprite.BoxSprite(shape)
+        spr.original_surface = s
+        m = models.Basic()
+        m.sprite = spr
+
+        self.add_model(m)
 
     def new_hero(self):
         typed_objects = [obj for obj in self.tmx_data.getObjects()
@@ -143,8 +193,8 @@ class Level(object):
 
         self.hero = hero.build(self.space)
         self.hero.position = hero_coords
-        self.add_actor(self.hero)
-        self.vp.follow(self.hero.body)
+        self.add_model(self.hero)
+        self.vp.follow(self.hero.sprite)
         self.spawned = False
         resources.sounds['hero-spawn'].play()
 
@@ -157,7 +207,7 @@ class Level(object):
         if name == 'zombie':
             zomb = zombie.build(self.space)
             zomb.position = hero_position + (200, 0)
-            self.add_actor(zomb)
+            self.add_model(zomb)
 
     def translate(self, coords):
         return pymunk.Vec2d(coords[0], self.map_height - coords[1])
@@ -170,27 +220,27 @@ class Level(object):
         self.running = False
         pygame.mixer.music.stop()
 
-    def add_actor(self, actor):
-        if self.actors_lock.acquire(False):
-            self.actors.add(actor)
-            for spr in actor.sprites:
+    def add_model(self, model):
+        if self.models_lock.acquire(False):
+            self.models.add(model)
+            for spr in model.sprites:
                 self.vpgroup.add(spr)
-            self.actors_lock.release()
+            self.models_lock.release()
         else:
-            self._add_queue.add(actor)
+            self._add_queue.add(model)
 
-    def remove_actor(self, actor):
-        if self.actors_lock.acquire(False):
-            self.actors.remove(actor)
-            for spr in actor.sprites:
+    def remove_model(self, model):
+        if self.models_lock.acquire(False):
+            self.models.remove(model)
+            for spr in model.sprites:
                 self.vpgroup.remove(spr)
-            if actor is self.hero:
+            if model is self.hero:
                 self.hero = None
                 self.death_reset = self.time
-            actor.kill()
-            self.actors_lock.release()
+            model.kill()
+            self.models_lock.release()
         else:
-            self._remove_queue.add(actor)
+            self._remove_queue.add(model)
 
     def draw(self, surface, rect):
         # draw the background
@@ -241,20 +291,20 @@ class Level(object):
 
         self.vpgroup.update(dt)
 
-        with self.actors_lock:
-            for actor in self.actors:
-                if actor.alive:
-                    actor.update(dt)
+        with self.models_lock:
+            for model in self.models:
+                if model.alive:
+                    model.update(dt)
 
                 # do not add else here
-                if not actor.alive:
-                    self.remove_actor(actor)
+                if not model.alive:
+                    self.remove_model(model)
 
-        for actor in self._remove_queue:
-            self.remove_actor(actor)
+        for model in self._remove_queue:
+            self.remove_model(model)
 
-        for actor in self._add_queue:
-            self.add_actor(actor)
+        for model in self._add_queue:
+            self.add_model(model)
 
         self._remove_queue = set()
         self._add_queue = set()

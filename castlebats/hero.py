@@ -50,10 +50,10 @@ class Model(models.UprightModel):
 
         self.move_power = config.getint('hero', 'move')
         self.jump_power = config.getint('hero', 'jump')
-        self.body_direction = self.RIGHT
+        self.sprite_direction = self.RIGHT
 
     def kill(self):
-        space = self.body.shape.body._space
+        space = self.sprite.shape.body._space
         space.remove(self.sword_sensor)
         for i in (collisions.geometry, collisions.boundary,
                   collisions.trap, collisions.enemy):
@@ -80,12 +80,12 @@ class Model(models.UprightModel):
 
         elif shape1.collision_type == collisions.trap:
             self.alive = False
-            self.body.change_state('die')
+            self.sprite.change_state('die')
             return False
 
         elif shape1.collision_type == collisions.enemy:
             self.alive = False
-            self.body.change_state('die')
+            self.sprite.change_state('die')
             return False
 
         elif shape1.collision_type == collisions.boundary:
@@ -107,8 +107,8 @@ class Model(models.UprightModel):
                     arbiter.total_impulse)
 
         if shape1.collision_type == collisions.enemy:
-            if 'attacking' in self.body.state:
-                shape1.actor.alive = False
+            if 'attacking' in self.sprite.state:
+                shape1.model.alive = False
             return 0
 
     @staticmethod
@@ -122,11 +122,11 @@ class Model(models.UprightModel):
                 position.y + feet_shape.radius * 1.5)
 
     def crouch(self):
-        self.body.state.remove('idle')
-        self.body.change_state('crouching')
+        self.sprite.state.remove('idle')
+        self.sprite.change_state('crouching')
 
-        pymunk_body = self.body.shape.body
-        pymunk_feet = self.body.shape.body
+        pymunk_body = self.sprite.shape.body
+        pymunk_feet = self.sprite.shape.body
         space = pymunk_body._space
 
         # force the velocity to 0 to prevent them from sliding
@@ -136,13 +136,13 @@ class Model(models.UprightModel):
         pymunk_feet.velocity = 0, 0
 
         # copy the old body shape
-        old_shape = self.body.shape
+        old_shape = self.sprite.shape
         new_shape = make_hitbox(pymunk_body, self.crouched_rect)
         new_shape.friction = old_shape.friction
         new_shape.elasticity = old_shape.elasticity
         new_shape.layers = old_shape.layers
         new_shape.collision_type = old_shape.collision_type
-        self.body.shape = new_shape
+        self.sprite.shape = new_shape
 
         space.remove(self.joint)
         space.remove(old_shape)
@@ -151,15 +151,15 @@ class Model(models.UprightModel):
         self.joint = None
 
     def uncrouch(self):
-        self.body.state.remove('crouching')
-        self.body.change_state('standup')
+        self.sprite.state.remove('crouching')
+        self.sprite.change_state('standup')
 
-        pymunk_body = self.body.shape.body
+        pymunk_body = self.sprite.shape.body
         pymunk_feet = self.feet.shape.body
         space = pymunk_body._space
 
         # copy the old body shape
-        old_shape = self.body.shape
+        old_shape = self.sprite.shape
         new_shape = make_hitbox(pymunk_body, self.normal_rect)
         new_shape.friction = old_shape.friction
         new_shape.elasticity = old_shape.elasticity
@@ -192,7 +192,7 @@ class Model(models.UprightModel):
         space.add(new_shape)
         space.add(joint)
 
-        self.body.shape = new_shape
+        self.sprite.shape = new_shape
         self.joint = joint
 
     def accelerate(self, direction):
@@ -203,8 +203,8 @@ class Model(models.UprightModel):
             self.sword_sensor.offset = -self.sword_offset
 
     def attack(self):
-        if 'attacking' not in self.body.state:
-            self.body.change_state('attacking')
+        if 'attacking' not in self.sprite.state:
+            self.sprite.change_state('attacking')
 
     def handle_input(self, event):
         # big ugly bunch of if statements... poor man's state machine
@@ -213,7 +213,7 @@ class Model(models.UprightModel):
         except (KeyError, AttributeError):
             return
 
-        body = self.body
+        body = self.sprite
 
         if 'idle' in body.state:
             if event.type == KEYDOWN:
@@ -380,7 +380,7 @@ def build(space):
     space.add(motor, joint)
 
     # the model is used to gameplay logic
-    model.body = body_sprite
+    model.sprite = body_sprite
     model.feet = feet_sprite
     model.joint = joint
     model.motor = motor
