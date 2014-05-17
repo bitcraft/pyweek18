@@ -146,7 +146,7 @@ class CastleBatsSprite(pygame.sprite.Sprite):
 
 class BoxSprite(CastleBatsSprite):
     """
-    im really confused why, but some box type object need special translations
+    im really confused why, but box type object need special translations
     """
     def update_image(self):
         """
@@ -165,6 +165,7 @@ class BoxSprite(CastleBatsSprite):
         self.shape.cache_bb()
         bb = self.shape.bb
         self.rect.topleft = bb.left, bb.bottom
+
 
 class ViewPortGroup(pygame.sprite.Group):
     """ viewports can be attached

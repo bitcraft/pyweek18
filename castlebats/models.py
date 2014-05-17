@@ -80,6 +80,7 @@ class UprightModel(Basic):
                 self.sprite.change_state()
         else:
             if 'jumping' not in self.sprite.state:
+                #self.sprite.state.remove('idle')
                 self.sprite.change_state('jumping')
 
     @property

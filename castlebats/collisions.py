@@ -15,3 +15,4 @@ boundary = 4
 
 # sword
 hero_sword = 5
+

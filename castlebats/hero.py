@@ -25,6 +25,8 @@ KEY_MAP = {
     K_q: P1_ACTION1,
     K_w: P1_ACTION2,
 }
+
+INV_KEY_MAP = {v: k for k, v in KEY_MAP.items()}
 #####################################
 
 
@@ -36,6 +38,9 @@ class Model(models.UprightModel):
     def __init__(self):
         super(Model, self).__init__()
         self.sword_sensor = None
+
+        self.air_move = None
+        self.air_move_speed = config.getfloat('hero', 'air-move')
 
         # this is the normal hitbox
         self.normal_rect = pygame.Rect(0, 0, 32, 40)
@@ -74,11 +79,7 @@ class Model(models.UprightModel):
                     arbiter.is_first_contact,
                     arbiter.total_impulse)
 
-        if shape1.collision_type == collisions.geometry:
-            self.grounded = True
-            return True
-
-        elif shape1.collision_type == collisions.trap:
+        if shape1.collision_type == collisions.trap:
             self.alive = False
             self.sprite.change_state('die')
             return False
@@ -94,6 +95,16 @@ class Model(models.UprightModel):
 
         else:
             return True
+
+    def on_grounded(self, space, arbiter):
+        self.air_move = None
+        self.grounded = True
+        return True
+
+    def on_ungrounded(self, space, arbiter):
+        self.air_move = None
+        self.grounded = False
+        return True
 
     def on_sword_collision(self, space, arbiter):
         shape0, shape1 = arbiter.shapes
@@ -195,6 +206,12 @@ class Model(models.UprightModel):
         self.sprite.shape = new_shape
         self.joint = joint
 
+    def update(self, dt):
+        if self.air_move is not None:
+            vel_x = self.air_move * self.air_move_speed
+            if self.sprite.shape.body.velocity.x < vel_x:
+                self.sprite.shape.body.velocity.x = vel_x
+
     def accelerate(self, direction):
         super(Model, self).accelerate(direction)
         if direction > 0:
@@ -206,7 +223,7 @@ class Model(models.UprightModel):
         if 'attacking' not in self.sprite.state:
             self.sprite.change_state('attacking')
 
-    def handle_input(self, event):
+    def handle_input(self, event, pressed):
         # big ugly bunch of if statements... poor man's state machine
         try:
             button = KEY_MAP[event.key]
@@ -222,7 +239,6 @@ class Model(models.UprightModel):
                 elif button == P1_RIGHT:
                     self.accelerate(self.RIGHT)
                 elif button == P1_UP and 'jumping' not in body.state:
-                    body.change_state('jumping')
                     self.jump()
                 elif button == P1_DOWN and 'jumping' not in body.state:
                     self.crouch()
@@ -235,12 +251,9 @@ class Model(models.UprightModel):
                     self.brake()
                 elif button == P1_RIGHT:
                     self.brake()
-                elif button == P1_UP and 'jumping' not in body.state:
-                    body.change_state('jumping')
 
             elif event.type == KEYDOWN:
                 if button == P1_UP and 'jumping' not in body.state:
-                    body.change_state('jumping')
                     self.jump()
 
         if 'crouching' in body.state:
@@ -252,6 +265,14 @@ class Model(models.UprightModel):
             if event.type == KEYDOWN:
                 if button == P1_ACTION1:
                     self.attack()
+
+            self.air_move = None
+            if pressed[INV_KEY_MAP[P1_LEFT]]:
+                self.air_move = self.LEFT
+            elif pressed[INV_KEY_MAP[P1_RIGHT]]:
+                self.air_move = self.RIGHT
+            else:
+                self.sprite.shape.body.reset_forces()
 
         logger.info("hero state %s", body.state)
 
@@ -386,9 +407,12 @@ def build(space):
     model.motor = motor
     model.sword_sensor = sensor
 
-    for i in (collisions.geometry, collisions.boundary,
-              collisions.trap, collisions.enemy):
+    for i in (collisions.boundary, collisions.trap, collisions.enemy):
         space.add_collision_handler(collisions.hero, i, model.on_collision)
+
+    space.add_collision_handler(collisions.hero, collisions.geometry,
+                                post_solve=model.on_grounded,
+                                separate=model.on_ungrounded)
 
     space.add_collision_handler(collisions.hero_sword, collisions.enemy,
                                 model.on_sword_collision)
