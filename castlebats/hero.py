@@ -42,6 +42,8 @@ class Model(models.UprightModel):
         self.air_move = None
         self.air_move_speed = config.getfloat('hero', 'air-move')
 
+        self.on_stairs = False
+
         # this is the normal hitbox
         self.normal_rect = pygame.Rect(0, 0, 32, 40)
         self.normal_feet_offset = (0, .7)
@@ -53,6 +55,9 @@ class Model(models.UprightModel):
         # position the sword sensor in fron of the model
         self.sword_offset = pymunk.Vec2d(self.normal_rect.width * .80, 0)
 
+        # detect if player wants to use stairs
+        self.wants_stairs = False
+
         self.move_power = config.getint('hero', 'move')
         self.jump_power = config.getint('hero', 'jump')
         self.sprite_direction = self.RIGHT
@@ -61,7 +66,8 @@ class Model(models.UprightModel):
         space = self.sprite.shape.body._space
         space.remove(self.sword_sensor)
         for i in (collisions.geometry, collisions.boundary,
-                  collisions.trap, collisions.enemy):
+                  collisions.trap, collisions.enemy,
+                  collisions.stairs):
             space.remove_collision_handler(collisions.hero, i)
         space.remove_collision_handler(collisions.hero_sword, collisions.enemy)
         del self.sword_sensor
@@ -96,6 +102,42 @@ class Model(models.UprightModel):
         else:
             return True
 
+    def on_stairs_begin(self, space, arbiter):
+        shape0, shape1 = arbiter.shapes
+
+        logger.info('stairs begin %s, %s, %s, %s, %s, %s',
+                    shape0.collision_type,
+                    shape1.collision_type,
+                    arbiter.elasticity,
+                    arbiter.friction,
+                    arbiter.is_first_contact,
+                    arbiter.total_impulse)
+
+        if self.wants_stairs:
+            c = arbiter.contacts
+            shape1.collision_type = collisions.geometry
+            self.on_stairs = shape1
+            return True
+        else:
+            return False
+
+    def on_stairs_separate(self, space, arbiter):
+        shape0, shape1 = arbiter.shapes
+
+        logger.info('stairs seperate %s, %s, %s, %s, %s, %s',
+                    shape0.collision_type,
+                    shape1.collision_type,
+                    arbiter.elasticity,
+                    arbiter.friction,
+                    arbiter.is_first_contact,
+                    arbiter.total_impulse)
+
+        return False
+
+    def drop_from_stairs(self):
+        self.on_stairs.collision_type = collisions.stairs
+        self.on_stairs = None
+
     def on_grounded(self, space, arbiter):
         self.air_move = None
         self.grounded = True
@@ -104,6 +146,8 @@ class Model(models.UprightModel):
     def on_ungrounded(self, space, arbiter):
         self.air_move = None
         self.grounded = False
+        if self.on_stairs:
+            self.drop_from_stairs()
         return True
 
     def on_sword_collision(self, space, arbiter):
@@ -160,6 +204,9 @@ class Model(models.UprightModel):
         space.add(new_shape)
 
         self.joint = None
+
+        if self.on_stairs:
+            self.drop_from_stairs()
 
     def uncrouch(self):
         self.sprite.state.remove('crouching')
@@ -232,13 +279,19 @@ class Model(models.UprightModel):
 
         body = self.sprite
 
+        if button == P1_UP:
+            if event.type == KEYDOWN:
+                self.wants_stairs = True
+            elif event.type == KEYUP:
+                self.wants_stairs = False
+
         if 'idle' in body.state:
             if event.type == KEYDOWN:
                 if button == P1_LEFT:
                     self.accelerate(self.LEFT)
                 elif button == P1_RIGHT:
                     self.accelerate(self.RIGHT)
-                elif button == P1_UP and 'jumping' not in body.state:
+                elif button == P1_ACTION2 and 'jumping' not in body.state:
                     self.jump()
                 elif button == P1_DOWN and 'jumping' not in body.state:
                     self.crouch()
@@ -253,7 +306,7 @@ class Model(models.UprightModel):
                     self.brake()
 
             elif event.type == KEYDOWN:
-                if button == P1_UP and 'jumping' not in body.state:
+                if button == P1_ACTION2 and 'jumping' not in body.state:
                     self.jump()
 
         if 'crouching' in body.state:
@@ -417,4 +470,7 @@ def build(space):
     space.add_collision_handler(collisions.hero_sword, collisions.enemy,
                                 model.on_sword_collision)
 
+    space.add_collision_handler(collisions.hero, collisions.stairs,
+                                begin=model.on_stairs_begin,
+                                separate=model.on_stairs_separate)
     return model
