@@ -69,6 +69,31 @@ class Sprite(CastleBatsSprite):
             self.set_animation('walking', itertools.cycle)
 
 
+def on_enemy_collision(space, arbiter, **kwargs):
+    shape0, shape1 = arbiter.shapes
+
+    model = kwargs['model']
+
+    logger.info('zombie collision %s, %s, %s, %s, %s, %s',
+                shape0.collision_type,
+                shape1.collision_type,
+                arbiter.elasticity,
+                arbiter.friction,
+                arbiter.is_first_contact,
+                arbiter.total_impulse)
+
+    if shape1.collision_type == collisions.trap:
+        model.alive = False
+        model.sprite.change_state('die')
+        return False
+
+    elif shape1.collision_type == collisions.boundary:
+        model.alive = False
+        return False
+
+    else:
+        return True
+
 def build(space):
     logger.info('building zombie model')
 
@@ -111,6 +136,10 @@ def build(space):
     joint = pymunk.PivotJoint(
         body_body, feet_body, feet_body.position, (0, 0))
     space.add(motor, joint)
+
+    for i in (collisions.boundary, collisions.trap):
+        space.add_collision_handler(collisions.enemy, i,
+                                    on_enemy_collision, model=model)
 
     # the model is used to gameplay logic
     model.sprite = body_sprite

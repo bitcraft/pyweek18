@@ -260,6 +260,8 @@ class Level(object):
         return rect
 
     def handle_input(self):
+        pressed = pygame.key.get_pressed()
+
         for event in pygame.event.get():
             if event.type == QUIT:
                 self.running = False
@@ -271,7 +273,7 @@ class Level(object):
                     break
 
             if self.hero:
-                self.hero.handle_input(event)
+                self.hero.handle_input(event, pressed)
 
     def update(self, dt):
         seconds = dt / 1000.
