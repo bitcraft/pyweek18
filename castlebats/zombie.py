@@ -24,10 +24,10 @@ class Model(models.UprightModel):
         self.sensor = None
         self.move_power = config.getint('zombie', 'move')
         self.jump_power = config.getint('zombie', 'jump')
-        self.body_direction = self.LEFT
+        self.sprite_direction = self.LEFT
 
     def kill(self):
-        space = self.body.shape.body._space
+        space = self.sprite.shape.body._space
         space.remove(self.sensor)
         super(Model, self).kill()
 
@@ -39,7 +39,7 @@ class Model(models.UprightModel):
 
     def update(self, dt):
         if self.motor.rate == 0:
-            self.accelerate(self.body_direction)
+            self.accelerate(self.sprite_direction)
 
 
 class Sprite(CastleBatsSprite):
@@ -99,7 +99,7 @@ def build(space):
     sensor = pymunk.Poly.create_box(body_body, size, offset)
     sensor.collision_type = collisions.enemy
     sensor.sensor = True
-    sensor.actor = model
+    sensor.model = model
     space.add(sensor)
 
     # attach feet to body
@@ -113,7 +113,7 @@ def build(space):
     space.add(motor, joint)
 
     # the model is used to gameplay logic
-    model.body = body_sprite
+    model.sprite = body_sprite
     model.feet = feet_sprite
     model.motor = motor
     model.joint = joint

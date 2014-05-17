@@ -11,15 +11,15 @@
  </tileset>
  <layer name="Tile Layer 1" width="100" height="100">
   <data encoding="base64" compression="zlib">
-   eJzt10drFGEAh/FVT34D/TrWu+1ixYZiJc0EK2kKVtIUrKQZsQVrxIodrHfr3Xq3PsGVZMad2d24MJPs84Pn8vKyh/ePYcxk0mPmuHSkP5LewT2Ckt7BPYKS3sE9gpLewT2Ckt7BPYKS3sE9gpLewT2Ckt7BPYKS3sE9gvK903xaQAtpES2mJSO44x6FyfdOa2gtraP1tIE2juCOexQm3zttpi20lbbRdtoxgjvuUZh877Sb9tBe2kf76cAI7ozFPabSNJoec2dK6N6M7PkqWp2jwbeooEqqomqqoU1US4fpCB2lY3ScToTeMu5O3G+P9j0KMYtm0xyaS/Oy57XUR6eoLtvw92igRmqiZtpJu+g0naGzdI7OU3/oLePu1Mf8djnssZSW0XJaQSuz54N7DNC1TO49WqmN2qmDDtIhuk436Cbdott0J/SWcXdaYn67HPaooEqqomqqyZ4P7lEXavh7dFE39VAvnaQ+ekJP6Rk9pxf0MvSWcXc6Y367HPaopwZqpCZqzp6H9xjIBDe5SJfoMl2hqzRAr+g1vaG39I7eh94y7s6FmN8uhz1aqJXaqJ06sufD9+jP/Ptv5B7dpwf0kB7RY/pAH+kTfaYv9DX0lnF37sb8djns0Uld1E091Js9z/X3Kvw3K1ff6Dv9oJ/0a/Dtxhd/ZzR/70Z9s4bPJ8ScTyywKPnearS8ZSlEfbMWcz65wKK4x5Cob9Zizt2jdKK+WYs5d4/SifpmLeb8f/f4qxzeO5+ob9Zizku1h6K/WYs5d4/0mJRxjzQpZo9c/0csRRriHuniHuniHuniHuniHuniHuniHpIkSZIkSZIkSZIkSZIkSZIkSZIkSZIkSZIkSZIkSZIkSZIkSRrLfgMJzNQn
+   eJztmEdrFVEYQKOu/Af6d6x728aKDcWKXazYwYodrGhiwQq2iBWsYN1b99a99Qh5ZGa8dzLzjG+ecg6czc3HJXwHZXJbWpqHwT2awx4V2kxU3cEeaaruYI80VXewR5qqO9gjTdUd7JGm6g72SFN1B3ukqbqDPdJU3cEeabra00gchaNxDI7FcXXM2KMYXe1pGk7HGTgTZ+HsOmbsUYyu9rQEl+IyXI4rcGUdM/YoRld72oibcDNuwa24rY6Z/7FHfxyAA3Nm+mXmBnWcT8GpAX/tYg7OxXk4HxfgQlyE+3A/HsCDeAgPZ3aZN5N397/eowhDcCgOw+E4ouN8EZ7Ak7i4w+Q+VuMaXIvrcD1uwFN4Gs/gWTyH5zO7zJsJ3Vu7O9QjNJ+3y7Lzje4xHifgRJyEkxM92vFqpMcO3Im7cDfuwb14Da/jDbyJt/B2Zpd5M6F7a3eHeoTm83ZZdr7RPebgXJyH83FBosfijMl9HMVWbMNjeBxP4CN8jE/wKT7D55ld5s2E7q3dHeoRms/bZdn5RvdYhatxDa7FdZEe7ZkmF/AiXsLLeAXb8QW+xFf4Gt/g28wu82ZC99buDvUIzeftsux8o3tsxx24E3fh7kCP8y2//xu5g3fxHt7HB/gQ3+F7/IAf8RN+zuwybyZ0b+3uUI/QfN4uy843uscRPIqt2IbHAj1i/2eF/IJf8Rt+xx+/fv+e5Weq/N6NvR8U7RH7Zs2e98o5713QGMld1fPzv7nfssbeD4r2iH2zljnvW9AY/1OP2PtB0R6xb9Yy5/boNPZ+ULRH7Ju1zLk9Oo29HxTtEftmLXP+pz2Se6+Hqhskjb0fFO0R+2Ytc95dPeql6gZJY+8HRXvEvlnLnNuj09j7QdEef0qfFnskjb0fNGOP0N+I3WHVDZLG3g/sUY2x9wN7NKd/G3vYwx5x7GEPe8SxR3P1EBERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERke7lJ0DgKkc=
   </data>
  </layer>
  <layer name="Tile Layer 2" width="100" height="100">
   <data encoding="base64" compression="zlib">
-   eJzt1jduVFEUgOHHdIQFYGADBjZA2AChIkmEiiRsqEwQY6hsQCJUJMlARZIIG8BmA4QNYKiAhrAIfvQqRmd8/QbmPuvyf9Jfnacr65xiXFXNraaRIdTP8k5VraCVtKrTfF663PcYYcdraC2tC/admpcu9z1G2fF62kAbg32n5qXLfY9N7HgzbaGtwb5T89Llvsc2dryddtDOYN+peely32M/Oz5AB+lQsO/UvHS57zHGjsfpJJ0K9p2aly73PbrseJIu0MVg36l56XLf4yo7vkbX6Uaw79S8dLnvMcOO79F9ehDsOzUvXe57PGPHz+kFvQz2nZqXLvc9XrHjWZqj18G+U/PS5b7HG3b8lt7R+2DfqXnpft9jtKdh3uMDO56nj/Qp2HdqXrrOkOrnG8Pv9IN+Bh+m5qXbRbtpD+2lfS29odphOkJH6Rgdb+kN1SboNJ2hs3SupTdUm6JpukSX6UpLb6h2k27RbbpDd1t6Q7WH9Ige0xN62tIb/6Nl1d/9r9rETNB4zzcnFjEf60mD6QZN9nxzvuG8O8S/t3TeY2npd4/P9IW+VvE9Fpp7j8FF95it/vwtmGs49x6Di+7xL9JgvMfS4j0kSZIkSZIkSZIkSZIkSZIkSZIkSZIkSZIkSZIkSZIkSZIkSZIkSZIkSYr9AlydxEI=
+   eJzt1kduVFEQheFHzwgLwMAGDGwA7A0QRiSJMCLJNoxIog0jkkQYkSQDI5KEzQZsswHCBggj7AlhERzUI1rVdXlFdz2r+T/pjKrr6t5XKtlVVd96ZWQA6WV1q6rWKGuVda369WGXPY8RfeMNykZlk/G9S/Vhlz2PUX3jzcoWZavxvUt1T3S3svs82fPYpntvV8aUceMNpbonulvZfZ7seezQvXcqu5TdxhtKdU90t7L7PNnzOKh7H1IOK0eMN5TqnuhuZfd5sucxqXtPKaeU08YbSnVPdLey+zzZ82jr3tPKJeWy8YZS3RPdrew+T/Y8buret5Tbyh3jDaW6J7pb2X2e7HnM6N6PlMfKE+MNpbonulvZfZ7sebzSvWeVOeW18YZS3RPdrew+T/Y85nXvBWVReWO8oVT3RHcru8+TPY+3uvc75b3ywXhDqe6J7lZ2n+f3PEa7Msh5fNS9PymflS/GG0p1T3S3svs8rQGll28qfld+KD+NH5bqnuhuZfd59ih7lX3KfuVAQ2f0Q3S3svs8R5VjynHlhHKyoTP6Ibpb2X2eM8pZ5ZxyXrnQ0BnouKJcVa4p15UbDZ2BjrvKPeW+8kB52NAZ6HiqPFOeKy+Ulw2d8T9aVf3b/6p1zBiZ6vrNxF/UJ7uCmLaR6a7fXKxZbw/wvsOOeawsvebxVVlSlit7Hl6decRZ81io/vxbsFizzjzirHn0I4hhHisL8wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAwPYLMAgb2w==
   </data>
  </layer>
- <objectgroup name="Walls" width="0" height="0" visible="0">
+ <objectgroup name="Walls" width="0" height="0">
   <object type="pymunktmx_box" x="368" y="384" width="16" height="16"/>
   <object type="pymunktmx_box" x="384" y="336" width="272" height="256"/>
   <object type="pymunktmx_box" x="128" y="336" width="256" height="16"/>
@@ -27,19 +27,31 @@
   <object type="pymunktmx_box" x="704" y="336" width="80" height="64"/>
   <object type="pymunktmx_box" x="832" y="336" width="80" height="64"/>
   <object type="pymunktmx_box" x="656" y="400" width="256" height="32"/>
-  <object type="pymunktmx_poly" x="912" y="336">
-   <polygon points="0,0 80,32 192,0 288,-80 336,-16 320,128 160,192 0,192"/>
+  <object type="pymunktmx_poly" x="1136" y="224">
+   <polygon points="0,0 0,272 176,272"/>
   </object>
+  <object type="pymunktmx_box" x="1408" y="496" width="192" height="96"/>
  </objectgroup>
  <objectgroup name="Actors" width="0" height="0" visible="0">
-  <object name="hero" type="Hero" x="144" y="256" width="48" height="48"/>
+  <object name="hero" type="Hero" x="864" y="256" width="48" height="48"/>
  </objectgroup>
  <objectgroup name="Traps" width="0" height="0" visible="0">
   <object type="pymunktmx_box" x="656" y="384" width="48" height="16"/>
   <object type="pymunktmx_box" x="784" y="384" width="48" height="16"/>
+  <object type="pymunktmx_box" x="912" y="400" width="224" height="32"/>
  </objectgroup>
  <objectgroup name="Boundaries" width="100" height="100" visible="0">
   <object type="pymunktmx_box" x="0" y="1584" width="368" height="16"/>
   <object type="pymunktmx_box" x="0" y="-16" width="16" height="1600"/>
+ </objectgroup>
+ <objectgroup name="Physics" width="100" height="100" visible="0">
+  <properties>
+   <property name="body.static" value="false"/>
+  </properties>
+  <object name="moving_1" type="pymunktmx_box" x="960" y="336" width="96" height="32">
+   <properties>
+    <property name="body.static" value="false"/>
+   </properties>
+  </object>
  </objectgroup>
 </map>

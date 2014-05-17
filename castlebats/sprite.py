@@ -21,6 +21,7 @@ from . import config
 class CastleBatsSprite(pygame.sprite.Sprite):
     """
     sprite tracks one pymunk shape and can draw it to a viewport
+    not quiet dirty sprite compatible
     """
     animations = {}
     loaded = False
@@ -32,6 +33,8 @@ class CastleBatsSprite(pygame.sprite.Sprite):
         self.axis = None
         self.image = None
         self.flip = False
+        self._old_angle = None
+        self.dirty = False
         self.state = []
         self.animation_timer = 0
         self.original_surface = None
@@ -74,13 +77,24 @@ class CastleBatsSprite(pygame.sprite.Sprite):
     def position(self):
         return self.shape.body.position
 
+    @position.setter
+    def position(self, value):
+        position = pymunk.Vec2d(value)
+        self.shape.body.position += position
+
     def update_image(self):
         """
         call this before drawing
+        rotates the image
+        sets the rect to the body position
         """
-        image = rotate(self.original_surface, degrees(self.shape.body.angle))
-        self.image = image.convert()
-        self.rect = image.get_rect()
+        angle = degrees(self.shape.body.angle)
+        if not angle == self._old_angle or self.dirty:
+            image = rotate(self.original_surface, angle)
+            self.image = image.convert()
+            self.rect = image.get_rect()
+            self._old_angle = angle
+            self.dirty = False
         self.rect.center = self.shape.body.position
 
     def update(self, dt):
@@ -109,6 +123,7 @@ class CastleBatsSprite(pygame.sprite.Sprite):
             new_surf = flip(new_surf, 1, 0)
             self.axis.x = -self.axis.x
         self.original_surface = new_surf
+        self.dirty = True
 
     def set_animation(self, name, func=None):
         self.animation_timer, animation = self.animations[name]
@@ -128,6 +143,28 @@ class CastleBatsSprite(pygame.sprite.Sprite):
 
         self.set_frame(next(self.current_animation))
 
+
+class BoxSprite(CastleBatsSprite):
+    """
+    im really confused why, but some box type object need special translations
+    """
+    def update_image(self):
+        """
+        call this before drawing
+        rotates the image
+        sets the rect to the body position
+        """
+        angle = degrees(self.shape.body.angle)
+        if not angle == self._old_angle or self.dirty:
+            image = rotate(self.original_surface, angle)
+            self.image = image.convert()
+            self.rect = image.get_rect()
+            self._old_angle = angle
+            self.dirty = False
+
+        self.shape.cache_bb()
+        bb = self.shape.bb
+        self.rect.topleft = bb.left, bb.bottom
 
 class ViewPortGroup(pygame.sprite.Group):
     """ viewports can be attached
@@ -303,7 +340,8 @@ class ViewPort(pygame.sprite.Sprite):
                     sprite.update_image()
                     new_rect = sprite.rect.copy()
                     new_rect.y = map_height - new_rect.y - new_rect.height
-                    new_rect.move_ip(*sprite.axis)
+                    if sprite.axis:
+                        new_rect.move_ip(*sprite.axis)
 
                     if camera_collide(new_rect):
                         new_rect = new_rect.move(xx, yy)
