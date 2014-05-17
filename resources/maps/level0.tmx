@@ -19,7 +19,7 @@
    eJzt1kduVFEQheFHzwgLwMAGDGwA7A0QRiSJMCLJNoxIog0jkkQYkSQDI5KEzQZsswHCBggj7AlhERzUI1rVdXlFdz2r+T/pjKrr6t5XKtlVVd96ZWQA6WV1q6rWKGuVda369WGXPY8RfeMNykZlk/G9S/Vhlz2PUX3jzcoWZavxvUt1T3S3svs82fPYpntvV8aUceMNpbonulvZfZ7seezQvXcqu5TdxhtKdU90t7L7PNnzOKh7H1IOK0eMN5TqnuhuZfd5sucxqXtPKaeU08YbSnVPdLey+zzZ82jr3tPKJeWy8YZS3RPdrew+T/Y8buret5Tbyh3jDaW6J7pb2X2e7HnM6N6PlMfKE+MNpbonulvZfZ7sebzSvWeVOeW18YZS3RPdrew+T/Y85nXvBWVReWO8oVT3RHcru8+TPY+3uvc75b3ywXhDqe6J7lZ2n+f3PEa7Msh5fNS9PymflS/GG0p1T3S3svs8rQGll28qfld+KD+NH5bqnuhuZfd59ih7lX3KfuVAQ2f0Q3S3svs8R5VjynHlhHKyoTP6Ibpb2X2eM8pZ5ZxyXrnQ0BnouKJcVa4p15UbDZ2BjrvKPeW+8kB52NAZ6HiqPFOeKy+Ulw2d8T9aVf3b/6p1zBiZ6vrNxF/UJ7uCmLaR6a7fXKxZbw/wvsOOeawsvebxVVlSlit7Hl6decRZ81io/vxbsFizzjzirHn0I4hhHisL8wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAwPYLMAgb2w==
   </data>
  </layer>
- <objectgroup name="Walls" width="0" height="0">
+ <objectgroup name="Walls" width="0" height="0" visible="0">
   <object type="pymunktmx_box" x="368" y="384" width="16" height="16"/>
   <object type="pymunktmx_box" x="384" y="336" width="272" height="256"/>
   <object type="pymunktmx_box" x="128" y="336" width="256" height="16"/>
@@ -33,7 +33,7 @@
   <object type="pymunktmx_box" x="1408" y="496" width="192" height="96"/>
  </objectgroup>
  <objectgroup name="Actors" width="0" height="0" visible="0">
-  <object name="hero" type="Hero" x="864" y="256" width="48" height="48"/>
+  <object name="hero" type="Hero" x="448" y="256" width="48" height="48"/>
  </objectgroup>
  <objectgroup name="Traps" width="0" height="0" visible="0">
   <object type="pymunktmx_box" x="656" y="384" width="48" height="16"/>
@@ -52,6 +52,11 @@
    <properties>
     <property name="body.static" value="false"/>
    </properties>
+  </object>
+ </objectgroup>
+ <objectgroup name="Stairs" width="100" height="100">
+  <object type="pymunktmx_poly" x="560" y="336">
+   <polygon points="0,0 208,-224 208,0"/>
   </object>
  </objectgroup>
 </map>

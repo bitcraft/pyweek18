@@ -114,18 +114,19 @@ class Level(object):
             if layer.name == 'Traps':
                 for index, obj in enumerate(layer):
                     obj.name = 'trap_{}'.format(index)
-            if layer.name == 'Boundaries':
+            elif layer.name == 'Boundaries':
                 for index, obj in enumerate(layer):
                     obj.name = 'boundary_{}'.format(index)
-            if layer.name == 'Physics':
+            elif layer.name == 'Physics':
                 for index, obj in enumerate(layer):
                     pass
+            elif layer.name == 'Stairs':
+                for index, obj in enumerate(layer):
+                    obj.name = 'stairs_{}'.format(index)
 
         # set up the physics simulation
         self.space = pymunk.Space()
         self.space.gravity = (0, config.getfloat('world', 'gravity'))
-
-
         shapes = load_shapes(self.tmx_data, self.space, resources.level_xml)
 
         # load the vp group and the single vp for level drawing
@@ -143,8 +144,16 @@ class Level(object):
                 shape.collision_type = collisions.boundary
             elif name.startswith('moving'):
                 self.handle_moving_platform(shape)
+            elif name.startswith('stairs'):
+                self.handle_stairs(shape)
 
         self.new_hero()
+
+    def handle_stairs(self, shape):
+        logger.info('loading stairs %s', shape)
+
+        shape.layers = 2
+        shape.collision_type = collisions.stairs
 
     def handle_moving_platform(self, shape):
         logger.info('loading moving platform %s', shape)
@@ -203,6 +212,7 @@ class Level(object):
         resources.sounds['hero-spawn'].play()
 
     def spawn_enemy(self, name):
+        return
         if not self.hero:
             return
 

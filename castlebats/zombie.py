@@ -94,6 +94,7 @@ def on_enemy_collision(space, arbiter, **kwargs):
     else:
         return True
 
+
 def build(space):
     logger.info('building zombie model')
 

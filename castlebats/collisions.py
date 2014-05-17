@@ -16,3 +16,5 @@ boundary = 4
 # sword
 hero_sword = 5
 
+# stairs
+stairs = 6
