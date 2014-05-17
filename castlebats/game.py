@@ -162,13 +162,17 @@ class Level(object):
                             bb.right - bb.left, bb.top - bb.bottom))
         rect.normalize()
 
+        height = 100
         anchor1 = shape.body.position
-        anchor2 = shape.body.position - (0, 100)
+        anchor2 = shape.body.position - (0, height)
 
         joint = pymunk.GrooveJoint(self.space.static_body, shape.body,
                                    anchor1, anchor2, (0, 0))
 
-        self.space.add(joint)
+        spring = pymunk.DampedSpring(self.space.static_body, shape.body,
+                                     anchor2, (0, 0), height, 10000, 0)
+
+        self.space.add(joint, spring)
 
         s = pygame.Surface((rect.width, rect.height))
         s.set_colorkey((0, 0, 0))
