@@ -36,6 +36,7 @@ class CastleBatsSprite(pygame.sprite.Sprite):
         self._old_angle = None
         self.dirty = False
         self.state = []
+        self.old_state = []
         self.animation_timer = 0
         self.original_surface = None
         self.current_animation = []

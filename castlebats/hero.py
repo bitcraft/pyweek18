@@ -40,7 +40,7 @@ class Model(models.UprightModel):
         super(Model, self).__init__()
         self.sword_sensor = None
 
-        self.air_move = None
+        self.air_move = 0
         self.air_move_speed = config.getfloat('hero', 'air-move')
 
         self.on_stairs = False
@@ -59,9 +59,91 @@ class Model(models.UprightModel):
         # detect if player wants to use stairs
         self.wants_stairs = False
 
+        # input fluidity
+        self.ignore_buttons = list()
+
         self.move_power = config.getint('hero', 'move')
         self.jump_power = config.getint('hero', 'jump')
         self.sprite_direction = self.RIGHT
+
+    def process(self, cmd):
+        # big ugly bunch of if statements... poor man's state machine
+
+        input_class, button, state = cmd
+        body = self.sprite
+        ignore = self.ignore_buttons.append
+
+        if state == BUTTONUP:
+            try:
+                self.ignore_buttons.remove(button)
+            except ValueError:
+                pass
+        else:
+            if button in self.ignore_buttons:
+                return
+
+        if button == P1_UP:
+            if state == BUTTONDOWN:
+                self.wants_stairs = True
+            elif state == BUTTONUP:
+                self.wants_stairs = False
+
+        if body.state[-1] == 'idle':
+            if state == BUTTONDOWN or state == BUTTONHELD:
+                if button == P1_LEFT:
+                    self.sprite.state.remove('idle')
+                    self.sprite.change_state('walking')
+                    self.accelerate(self.LEFT)
+                elif button == P1_RIGHT:
+                    self.sprite.state.remove('idle')
+                    self.sprite.change_state('walking')
+                    self.accelerate(self.RIGHT)
+                elif button == P1_ACTION1:
+                    ignore(P1_ACTION1)
+                    self.sprite.change_state('attacking')
+
+                if self.grounded:
+                    if button == P1_ACTION2:
+                        ignore(P1_ACTION2)
+                        self.jump()
+
+                    elif button == P1_DOWN:
+                        ignore(P1_DOWN)
+                        self.sprite.state.remove('idle')
+                        self.sprite.change_state('crouching')
+                        self.crouch()
+
+        elif 'walking' in body.state:
+            if self.grounded:
+                if state == BUTTONDOWN:
+                    if button == P1_ACTION2:
+                        self.jump()
+
+            if state == BUTTONUP:
+                if button == P1_LEFT or button == P1_RIGHT:
+                    self.brake()
+
+        elif 'crouching' in body.state:
+            if state == BUTTONUP:
+                if button == P1_DOWN:
+                    self.sprite.state.remove('crouching')
+                    self.sprite.change_state('standup')
+                    self.uncrouch()
+
+        elif not self.grounded:
+            if state == BUTTONDOWN:
+                if button == P1_ACTION1:
+                    if 'attacking' not in body.state:
+                        self.sprite.change_state('attacking')
+
+            self.air_move = 0
+            if state == BUTTONDOWN or state == BUTTONHELD:
+                if button == P1_LEFT:
+                    self.air_move = self.LEFT
+                elif button == P1_RIGHT:
+                    self.air_move = self.RIGHT
+
+        logger.info("hero state %s", body.state)
 
     def kill(self):
         space = self.sprite.shape.body._space
@@ -140,12 +222,12 @@ class Model(models.UprightModel):
         self.on_stairs = None
 
     def on_grounded(self, space, arbiter):
-        self.air_move = None
+        self.air_move = 0
         self.grounded = True
         return True
 
     def on_ungrounded(self, space, arbiter):
-        self.air_move = None
+        self.air_move = 0
         self.grounded = False
         if self.on_stairs:
             self.drop_from_stairs()
@@ -178,9 +260,6 @@ class Model(models.UprightModel):
                 position.y + feet_shape.radius * 1.5)
 
     def crouch(self):
-        self.sprite.state.remove('idle')
-        self.sprite.change_state('crouching')
-
         pymunk_body = self.sprite.shape.body
         pymunk_feet = self.sprite.shape.body
         space = pymunk_body._space
@@ -210,9 +289,6 @@ class Model(models.UprightModel):
             self.drop_from_stairs()
 
     def uncrouch(self):
-        self.sprite.state.remove('crouching')
-        self.sprite.change_state('standup')
-
         pymunk_body = self.sprite.shape.body
         pymunk_feet = self.feet.shape.body
         space = pymunk_body._space
@@ -255,9 +331,9 @@ class Model(models.UprightModel):
         self.joint = joint
 
     def update(self, dt):
-        if self.air_move is not None:
+        if not self.air_move == 0:
             vel_x = self.air_move * self.air_move_speed
-            if self.sprite.shape.body.velocity.x < vel_x:
+            if abs(self.sprite.shape.body.velocity.x) < abs(vel_x):
                 self.sprite.shape.body.velocity.x = vel_x
 
     def accelerate(self, direction):
@@ -268,84 +344,7 @@ class Model(models.UprightModel):
             self.sword_sensor.offset = -self.sword_offset
 
     def attack(self):
-        if 'attacking' not in self.sprite.state:
-            self.sprite.change_state('attacking')
-
-    def process(self, cmd):
-        # big ugly bunch of if statements... poor man's state machine
-
-        input_class, button, state = cmd
-        body = self.sprite
-
-        print cmd
-
-        if 'idle' in body.state:
-            if state == BUTTONDOWN:
-                if button == P1_LEFT:
-                    self.accelerate(self.LEFT)
-                elif button == P1_RIGHT:
-                    self.accelerate(self.RIGHT)
-
-        elif 'walking' in body.state:
-            if state == BUTTONDOWN:
-                if button == P1_ACTION2 and 'jumping' not in body.state:
-                    self.jump()
-
-            elif state == BUTTONUP:
-                if button == P1_LEFT or button == P1_RIGHT:
-                    self.brake()
-
-        return
-
-        if button == P1_UP:
-            if cmd.type == KEYDOWN:
-                self.wants_stairs = True
-            elif cmd.type == KEYUP:
-                self.wants_stairs = False
-
-        if 'idle' in body.state:
-            if cmd.type == KEYDOWN:
-                if button == P1_LEFT:
-                    self.accelerate(self.LEFT)
-                elif button == P1_RIGHT:
-                    self.accelerate(self.RIGHT)
-                elif button == P1_ACTION2 and 'jumping' not in body.state:
-                    self.jump()
-                elif button == P1_DOWN and 'jumping' not in body.state:
-                    self.crouch()
-                elif button == P1_ACTION1:
-                    self.attack()
-
-        elif 'walking' in body.state:
-            if cmd.type == KEYUP:
-                if button == P1_LEFT:
-                    self.brake()
-                elif button == P1_RIGHT:
-                    self.brake()
-
-            elif cmd.type == KEYDOWN:
-                if button == P1_ACTION2 and 'jumping' not in body.state:
-                    self.jump()
-
-        if 'crouching' in body.state:
-            if cmd.type == KEYUP:
-                if button == P1_DOWN:
-                    self.uncrouch()
-
-        if 'jumping' in body.state:
-            if cmd.type == KEYDOWN:
-                if button == P1_ACTION1:
-                    self.attack()
-
-            self.air_move = None
-            if pressed[INV_KEY_MAP[P1_LEFT]]:
-                self.air_move = self.LEFT
-            elif pressed[INV_KEY_MAP[P1_RIGHT]]:
-                self.air_move = self.RIGHT
-            else:
-                self.sprite.shape.body.reset_forces()
-
-        logger.info("hero state %s", body.state)
+        pass
 
 
 class Sprite(CastleBatsSprite):
@@ -378,6 +377,7 @@ class Sprite(CastleBatsSprite):
 
     def change_state(self, state=None):
         if state:
+            self.old_state = self.state[:]
             if self.state == ['idle']:
                 self.state = [state]
             else:

@@ -290,8 +290,9 @@ class Level(object):
                 if cmd is not None:
                     self.hero.process(cmd)
 
-                for cmd in self.keyboard_input.get_held():
-                    self.hero.process(cmd)
+        if self.hero:
+            for cmd in self.keyboard_input.get_held():
+                self.hero.process(cmd)
 
     def update(self, dt):
         seconds = dt / 1000.
