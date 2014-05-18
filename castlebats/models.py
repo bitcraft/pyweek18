@@ -2,6 +2,8 @@ __author__ = 'Leif'
 
 import pymunk
 import logging
+import time
+
 logger = logging.getLogger('castlebats.model')
 
 
@@ -51,6 +53,10 @@ class UprightModel(Basic):
         self.move_power = 1
         self.jump_power = 1
 
+        # prevent super quick animation changes
+        self._debounce_time = 0
+        self._grounded = False
+
         # this should match your spritesheet's normal character facing direction
         self.sprite_direction = self.RIGHT
 
@@ -70,18 +76,24 @@ class UprightModel(Basic):
 
     @property
     def grounded(self):
-        return 'jumping' in self.sprite.state
+        return self._grounded
 
     @grounded.setter
     def grounded(self, value):
+        value = bool(value)
+        self._grounded = value
+
         if value:
             if 'jumping' in self.sprite.state:
                 self.sprite.state.remove('jumping')
                 self.sprite.change_state()
+                self._debounce_time = time.time()
         else:
-            if 'jumping' not in self.sprite.state:
-                #self.sprite.state.remove('idle')
-                self.sprite.change_state('jumping')
+            now = time.time()
+            if now - self._debounce_time > .1:
+                if 'jumping' not in self.sprite.state:
+                    self.sprite.change_state('jumping')
+                    self._debounce_time = now
 
     @property
     def position(self):
@@ -94,9 +106,6 @@ class UprightModel(Basic):
         self.feet.shape.body.position += position
 
     def accelerate(self, direction):
-        self.sprite.state.remove('idle')
-        self.sprite.change_state('walking')
-
         this_direction = None
         if direction > 0:
             this_direction = self.RIGHT
@@ -117,6 +126,6 @@ class UprightModel(Basic):
         self.motor.rate = 0
         self.motor.max_force = pymunk.inf
 
-    def jump(self):
-        impulse = (0, self.jump_power)
+    def jump(self, mod=1.0):
+        impulse = (0, self.jump_power * mod)
         self.sprite.shape.body.apply_impulse(impulse)
