@@ -5,6 +5,7 @@ from . import collisions
 from . import config
 from . import resources
 from . import models
+from . import playerinput
 from .sprite import CastleBatsSprite
 from .sprite import make_body
 from .sprite import make_feet
@@ -270,23 +271,40 @@ class Model(models.UprightModel):
         if 'attacking' not in self.sprite.state:
             self.sprite.change_state('attacking')
 
-    def handle_input(self, event, pressed):
+    def process(self, cmd):
         # big ugly bunch of if statements... poor man's state machine
-        try:
-            button = KEY_MAP[event.key]
-        except (KeyError, AttributeError):
-            return
 
+        input_class, button, state = cmd
         body = self.sprite
 
+        print cmd
+
+        if 'idle' in body.state:
+            if state == BUTTONDOWN:
+                if button == P1_LEFT:
+                    self.accelerate(self.LEFT)
+                elif button == P1_RIGHT:
+                    self.accelerate(self.RIGHT)
+
+        elif 'walking' in body.state:
+            if state == BUTTONDOWN:
+                if button == P1_ACTION2 and 'jumping' not in body.state:
+                    self.jump()
+
+            elif state == BUTTONUP:
+                if button == P1_LEFT or button == P1_RIGHT:
+                    self.brake()
+
+        return
+
         if button == P1_UP:
-            if event.type == KEYDOWN:
+            if cmd.type == KEYDOWN:
                 self.wants_stairs = True
-            elif event.type == KEYUP:
+            elif cmd.type == KEYUP:
                 self.wants_stairs = False
 
         if 'idle' in body.state:
-            if event.type == KEYDOWN:
+            if cmd.type == KEYDOWN:
                 if button == P1_LEFT:
                     self.accelerate(self.LEFT)
                 elif button == P1_RIGHT:
@@ -299,23 +317,23 @@ class Model(models.UprightModel):
                     self.attack()
 
         elif 'walking' in body.state:
-            if event.type == KEYUP:
+            if cmd.type == KEYUP:
                 if button == P1_LEFT:
                     self.brake()
                 elif button == P1_RIGHT:
                     self.brake()
 
-            elif event.type == KEYDOWN:
+            elif cmd.type == KEYDOWN:
                 if button == P1_ACTION2 and 'jumping' not in body.state:
                     self.jump()
 
         if 'crouching' in body.state:
-            if event.type == KEYUP:
+            if cmd.type == KEYUP:
                 if button == P1_DOWN:
                     self.uncrouch()
 
         if 'jumping' in body.state:
-            if event.type == KEYDOWN:
+            if cmd.type == KEYDOWN:
                 if button == P1_ACTION1:
                     self.attack()
 

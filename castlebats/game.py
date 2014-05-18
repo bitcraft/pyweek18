@@ -10,6 +10,7 @@ import logging
 
 logger = logging.getLogger('castlebats.game')
 
+from . import playerinput
 from . import collisions
 from . import ui
 from . import resources
@@ -92,8 +93,6 @@ class Level(object):
     def __init__(self):
         self.time = 0
         self.death_reset = 0
-        self.buffer_rect = None
-        self.buffer_surface = None
         self.running = False
         self.models = set()
         self.hero = None
@@ -104,6 +103,8 @@ class Level(object):
         self._remove_queue = set()
         self.draw_background = config.getboolean('display', 'draw-background')
         self.bg = resources.images['default-bg']
+
+        self.keyboard_input = playerinput.KeyboardPlayerInput()
 
         self.tmx_data = resources.maps['level0']
         self.map_data = pyscroll.TiledMapData(self.tmx_data)
@@ -259,8 +260,10 @@ class Level(object):
     def draw(self, surface, rect):
         # draw the background
         if self.draw_background:
-            surface.blit(self.bg, rect.topleft)
-            surface.blit(self.bg, (self.bg.get_width(), rect.top))
+            left, top = rect.topleft
+            top -= 60
+            surface.blit(self.bg, (left, top))
+            surface.blit(self.bg, (self.bg.get_width(), top))
         else:
             surface.fill((0, 0, 0))
 
@@ -283,7 +286,12 @@ class Level(object):
                     break
 
             if self.hero:
-                self.hero.handle_input(event, pressed)
+                cmd = self.keyboard_input.get_command(event)
+                if cmd is not None:
+                    self.hero.process(cmd)
+
+                for cmd in self.keyboard_input.get_held():
+                    self.hero.process(cmd)
 
     def update(self, dt):
         seconds = dt / 1000.
