@@ -68,7 +68,6 @@ class UprightModel(Basic):
         space = self.sprite.shape.body._space
         space.remove(self.joint, self.motor)
         self.feet.kill()
-        del self._next_animation
         del self.feet
         del self.motor
         del self.joint

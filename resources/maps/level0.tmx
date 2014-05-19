@@ -9,34 +9,45 @@
  <tileset firstgid="513" name="parallaxBG-interior2" tilewidth="16" tileheight="16">
   <image source="parallaxBG-interior2.png" width="256" height="320"/>
  </tileset>
- <layer name="Tile Layer 1" width="500" height="25" visible="0">
+ <layer name="Tile Layer 1" width="500" height="25">
   <data encoding="base64" compression="zlib">
-   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
+   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
   </data>
  </layer>
- <layer name="Tile Layer 2" width="500" height="25" visible="0">
+ <layer name="Tile Layer 2" width="500" height="25">
   <data encoding="base64" compression="zlib">
-   eJzt2zdulFEUhuGf6QgLsIENGLwBwgYAVyQJcEUSNlQkMYaKJBEqDEgGKhMkwgYIGyBsgFABDWER/mhnztzrOZw5vxDvI73VnfvL3adbuGmGN6bGR9AgKztNs0qtVms6w58DAIB+2Xs+ro1eq9ap9cZe184BAEC/7D2f0EZvUBvVpLHXtfMS79s++x4AANGy93yTdm+z2qK2GhtYOy/xvu2z7wEAEC17z7dp97arHWrK2MDaeYn3bZ99DwCAaNl7vk+7t18dUNPGBtbOS7xv++x7AABEy97zGe3erDquThgbWDsv8b7ts+8BABAte8+72r05dV5dMDawdl7ifdtn3wMAIFr2nl/T7l1XN9RNYwNr5yXet332PQAAomXv+YJ27566rx4YG1g7L/G+7bPvAQAQLXvPn2r3nqnn6oWxgbXzEu/bPvseAADRsvf8pXbvlXqt3hgbWDsv8b7ts+8BABAte8/favfeqffqg7GBtfMS79s++x4AANH+7PlET6Pc84/avU/qs/pibGDtvMT7ts++BwBAtM6IGuSHDn+qX+q38cPaeYn3bZ99DwCAaDvVLrVb7VF7W/pGBO/bPvseAADRDqpD6rA6oo629I0I3rd99j0AAKKdVKfUaXVGnW3pGwAAwO+iuqQuqyvqakvfAAAAfrfUvLqt7qi7LX0DAAD4LaqH6pF6rJ609A0AALA8K5q/+1+zYSwYzfb85tgyzmd6AgAAebpGcz2/OTfkeXeEfy8AAOjHngMA8O8btOdf1Tf1vbH3vHTOngMA/gdLlYXxjg==
+   eJzt2jeOFUEUheHWyzAxYoANDLABzAYwEU7CRDgxAxFOzECEkzARA0gDRDgJswHMBjAbwERAglkEp0XWU11Vr+5Udbf4P+lE96lfeHRLt6ryWalMZEibJaOqWqosU5aPxp8DAICFSvf5hDp6lbJaWePo69AcAAAsVLrPJ9XRa5V1ynpHX4fmPqm7PW8CAIChK93nG9SXG5VNymZHd4bmPqm7PW8CAIChK93nW9SXW5VtynZHd4bmPqm7veVNAACAPijd53vVl/uU/coBR3eG5j6pu73lTQAAgD4o3edT6stp5bhywtGdoblP6m5veRMAAKAPSvf5jPpyVjmvXHB0Z2juk7rbW94EAADog9J9fk19eV25odx0dGdo7pO621veBAAA6IPSfT6vvryn3FceOLozNPdJ3e0tbwIAAPRB6T5/pr58rrxQXjq6MzT3Sd3tLW8CAAD0Qek+f6W+fK28Ud46ujM090nd7S1vAgAA9EHpPn+nvnyvfFA+OrozNPdJ3e0tbwK12Hs67u4AALnUfT7ZSM4+/6Qe+6x8Ub46Oi0090nd7S1vArXYezru7gAAuYwypc1PDX8pv5U/jh+G5j6pu73lTaAWe0/H3R0AIJcdyk5ll7Jb2dPRNxZD6m5veROoxd7TcXcHAMjloHJIOawcUY529I3FkLrbW94EarH3dNzdAQByOamcUk4rZ5SzHX1jyGLv6ax3dwAAtLmoXFIuK1eUqx19Y8hi7+msd3cAALS5pcwpt5U7yt2OvjFksfd01rs7AADaPFQeKY+VJ8rTjr4xZLH3dNa7OwDA/2NF5sSad2S68ZtjEfOpAmn+77hi7+msd3cAAJQ248hs4zfnxpznSvN/AQDAP/Q5AADD19ab35Tvyo/K3ee+OX0OABiyv7OfMhA=
   </data>
  </layer>
- <objectgroup name="Walls" width="500" height="25">
+ <objectgroup name="Walls" width="500" height="25" visible="0">
+  <object type="pymunktmx_box" x="176" y="336" width="640" height="64"/>
+  <object type="pymunktmx_box" x="864" y="336" width="80" height="64"/>
+  <object type="pymunktmx_box" x="992" y="336" width="432" height="64"/>
+  <object type="pymunktmx_box" x="368" y="0" width="352" height="224"/>
+  <object type="pymunktmx_box" x="1616" y="144" width="336" height="48"/>
+ </objectgroup>
+ <objectgroup name="Actors" width="500" height="25" visible="0">
+  <object name="hero" type="Hero" x="208" y="256" width="48" height="48"/>
+ </objectgroup>
+ <objectgroup name="Traps" width="500" height="25" visible="0">
+  <object type="pymunktmx_box" x="816" y="384" width="48" height="16"/>
+  <object type="pymunktmx_box" x="944" y="384" width="48" height="16"/>
+ </objectgroup>
+ <objectgroup name="Boundaries" width="500" height="25" visible="0">
+  <object type="pymunktmx_box" x="1424" y="384" width="880" height="16"/>
+  <object x="1248" y="496" width="32" height="16"/>
   <object type="pymunktmx_box" x="0" y="0" width="16" height="400"/>
-  <object type="pymunktmx_box" x="16" y="368" width="1488" height="16"/>
+  <object type="pymunktmx_box" x="16" y="384" width="160" height="16"/>
  </objectgroup>
- <objectgroup name="Actors" width="500" height="25">
-  <object name="hero" type="Hero" x="32" y="304" width="48" height="48"/>
- </objectgroup>
- <objectgroup name="Traps" width="500" height="25"/>
- <objectgroup name="Boundaries" width="500" height="25"/>
  <objectgroup name="Physics" width="500" height="25">
   <properties>
    <property name="body.static" value="false"/>
   </properties>
-  <object name="moving_1" type="pymunktmx_box" x="240" y="272" width="96" height="32">
+  <object name="moving_1" type="pymunktmx_box" x="1472" y="304" width="112" height="16">
    <properties>
     <property name="body.static" value="false"/>
    </properties>
   </object>
  </objectgroup>
- <objectgroup name="Stairs" width="500" height="25"/>
+ <objectgroup name="Stairs" width="500" height="25" visible="0"/>
 </map>
