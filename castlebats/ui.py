@@ -1,11 +1,7 @@
 import pygame
+from . import resources
 
 __all__ = ['TextSprite']
-
-pygame.init()
-pygame.font.init()
-default_font = pygame.font.get_default_font()
-font = pygame.font.Font(default_font, 32)
 
 
 class TextSprite(pygame.sprite.DirtySprite):
@@ -20,6 +16,7 @@ class TextSprite(pygame.sprite.DirtySprite):
         self.bgcolor = bgcolor
         self.image = None
         self.rect = pygame.Rect(0, 0, 1, 1)
+        self.font = pygame.font.Font(resources.fonts['default'], 12)
         self.update_image()
 
     def update(self, dt=None):
@@ -29,7 +26,7 @@ class TextSprite(pygame.sprite.DirtySprite):
             self.update()
 
     def update_image(self):
-        self.image = font.render(self._text, 0, self._color, self._bgcolor)
+        self.image = self.font.render(self._text, 0, self._color, self._bgcolor)
         self.rect.size = self.image.get_size()
         self.dirty = 1
 
