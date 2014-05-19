@@ -2,9 +2,10 @@ import pygame
 
 __all__ = ['TextSprite']
 
+pygame.init()
 pygame.font.init()
 default_font = pygame.font.get_default_font()
-font = pygame.font.SysFont(default_font, 32)
+font = pygame.font.Font(default_font, 32)
 
 
 class TextSprite(pygame.sprite.DirtySprite):
