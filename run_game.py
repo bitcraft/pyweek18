@@ -18,6 +18,7 @@ import pygame
 #import pymunkoptions
 #pymunkoptions.options["debug"] = False
 
+
 def check_libs():
     import pytmx
     import pymunktmx
@@ -48,6 +49,9 @@ if __name__ == '__main__':
     pygame.mixer.init(frequency=sound_frequency, buffer=sound_buffer_size)
     screen = init_screen(screen_width, screen_height)
     pygame.display.set_caption(window_caption)
+
+    pygame.init()
+
     pygame.font.init()
 
     screen.fill((0, 0, 0))
