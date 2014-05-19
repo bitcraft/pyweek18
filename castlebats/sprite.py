@@ -10,7 +10,6 @@ import pygame
 import pymunk
 import pyscroll
 import logging
-import weakref
 
 logger = logging.getLogger("castlebats.sprite")
 

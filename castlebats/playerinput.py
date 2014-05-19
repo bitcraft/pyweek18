@@ -49,6 +49,9 @@ class KeyboardPlayerInput(PlayerInput):
         self.rev_keymap = dict((v, k) for k, v in self.keymap.iteritems())
         self.held = []
 
+    def reset(self):
+        self.held = []
+
     def get_held(self):
         """
         return a list of keys that are being held down

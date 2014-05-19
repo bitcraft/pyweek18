@@ -5,7 +5,6 @@ from . import collisions
 from . import config
 from . import resources
 from . import models
-from . import playerinput
 from .sprite import CastleBatsSprite
 from .sprite import make_body
 from .sprite import make_feet
@@ -60,7 +59,7 @@ class Model(models.UprightModel):
         self.wants_stairs = False
 
         # input fluidity
-        self.ignore_buttons = list()
+        self.ignore_buttons = set()
 
         self.move_power = config.getint('hero', 'move')
         self.jump_power = config.getint('hero', 'jump')
@@ -71,13 +70,13 @@ class Model(models.UprightModel):
         # big ugly bunch of if statements... poor man's state machine
 
         input_class, button, state = cmd
-        ignore = self.ignore_buttons.append
+        ignore = self.ignore_buttons.add
         body = self.sprite
 
         if state == BUTTONUP:
             try:
                 self.ignore_buttons.remove(button)
-            except ValueError:
+            except KeyError:
                 pass
         else:
             if button in self.ignore_buttons:
@@ -146,8 +145,9 @@ class Model(models.UprightModel):
         elif not self.grounded:
             if state == BUTTONDOWN:
                 if button == P1_ACTION1:
-                    ignore(P1_DOWN)
-                    body.change_state('attacking')
+                    if 'attacking' not in body.state:
+                        ignore(P1_ACTION1)
+                        body.change_state('attacking')
 
             self.air_move = 0
             if state == BUTTONDOWN or state == BUTTONHELD:
@@ -187,16 +187,16 @@ class Model(models.UprightModel):
             return False
 
         elif shape1.collision_type == collisions.enemy:
-            self.alive = False
-            self.sprite.change_state('die')
-            return False
+            if shape1.model.alive:
+                self.alive = False
+                self.sprite.change_state('die')
+                return False
 
         elif shape1.collision_type == collisions.boundary:
             self.alive = False
             return False
 
-        else:
-            return True
+        return True
 
     def on_stairs_begin(self, space, arbiter):
         shape0, shape1 = arbiter.shapes
@@ -257,10 +257,10 @@ class Model(models.UprightModel):
                     arbiter.is_first_contact,
                     arbiter.total_impulse)
 
-        if shape1.collision_type == collisions.enemy:
-            if 'attacking' in self.sprite.state:
-                shape1.model.alive = False
-            return 0
+        if 'attacking' in self.sprite.state:
+            shape1.model.alive = False
+
+        return False
 
     @staticmethod
     def normal_feet_position(position, feet_shape):
@@ -443,7 +443,7 @@ def build(space):
     body_body.collision_type = collisions.hero
     body_shape.elasticity = 0
     body_shape.layers = layers
-    body_shape.friction = pymunk.inf
+    body_shape.friction = 1.0
     body_sprite = Sprite(body_shape)
     space.add(body_body, body_shape)
 
@@ -500,7 +500,7 @@ def build(space):
                                 separate=model.on_ungrounded)
 
     space.add_collision_handler(collisions.hero_sword, collisions.enemy,
-                                model.on_sword_collision)
+                                pre_solve=model.on_sword_collision)
 
     space.add_collision_handler(collisions.hero, collisions.stairs,
                                 begin=model.on_stairs_begin,

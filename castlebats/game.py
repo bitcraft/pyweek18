@@ -1,14 +1,11 @@
 import threading
-
+import logging
 import pyscroll
 import pygame
 import pymunk
 from pymunktmx.shapeloader import load_shapes
+from six.moves import range
 from pygame.locals import *
-
-import logging
-
-logger = logging.getLogger('castlebats.game')
 
 from . import playerinput
 from . import collisions
@@ -20,7 +17,7 @@ from . import sprite
 from . import config
 from . import models
 
-COLLISION_LAYERS = [2 ** i for i in range(32)]
+logger = logging.getLogger('castlebats.game')
 
 
 def ignore_gravity(body, gravity, damping, dt):
@@ -96,7 +93,7 @@ class Level(object):
         self.running = False
         self.models = set()
         self.hero = None
-        self.spawned = False
+        self.spawn_zombie = 0
         self.models_lock = threading.Lock()
         self.hud_group = pygame.sprite.Group()
         self._add_queue = set()
@@ -180,14 +177,26 @@ class Level(object):
                                    anchor1, anchor2, (0, 0))
 
         spring = pymunk.DampedSpring(self.space.static_body, shape.body,
-                                     anchor2, (0, 0), height, 10000, 0)
+                                     anchor2, (0, 0), height, 10000, 50)
 
         self.space.add(joint, spring)
 
+        gids = [self.tmx_data.map_gid(i)[0][0] for i in (1, 2, 3)]
+        colorkey = (255, 0, 255)
+        tile_width = self.tmx_data.tilewidth
+
         s = pygame.Surface((rect.width, rect.height))
-        s.set_colorkey((0, 0, 0))
-        s.fill((200, 200, 200))
-        pygame.draw.rect(s, (0, 0, 0), (0, 0, rect.width, rect.height), 1)
+        s.set_colorkey(colorkey)
+        s.fill(colorkey)
+
+        tile = self.tmx_data.getTileImageByGid(gids[0])
+        s.blit(tile, (0, 0))
+        tile = self.tmx_data.getTileImageByGid(gids[1])
+        for x in range(0, rect.width - tile_width, tile_width):
+            s.blit(tile, (x, 0))
+        tile = self.tmx_data.getTileImageByGid(gids[2])
+        s.blit(tile, (rect.width - tile_width, 0))
+
         spr = sprite.BoxSprite(shape)
         spr.original_surface = s
         m = models.Basic()
@@ -205,15 +214,15 @@ class Level(object):
             if obj.type.lower() == 'hero':
                 hero_coords = self.translate((obj.x, obj.y))
 
+        self.keyboard_input.reset()
         self.hero = hero.build(self.space)
         self.hero.position = hero_coords
         self.add_model(self.hero)
         self.vp.follow(self.hero.sprite)
-        self.spawned = False
+        self.spawn_zombie = False
         resources.sounds['hero-spawn'].play()
 
     def spawn_enemy(self, name):
-        return
         if not self.hero:
             return
 
@@ -221,7 +230,7 @@ class Level(object):
 
         if name == 'zombie':
             zomb = zombie.build(self.space)
-            zomb.position = hero_position + (200, 0)
+            zomb.position = hero_position + (300, 0)
             self.add_model(zomb)
 
     def translate(self, coords):
@@ -259,6 +268,7 @@ class Level(object):
 
     def draw(self, surface, rect):
         # draw the background
+        surface.set_clip(rect)
         if self.draw_background:
             left, top = rect.topleft
             top -= 60
@@ -266,6 +276,7 @@ class Level(object):
             surface.blit(self.bg, (self.bg.get_width(), top))
         else:
             surface.fill((0, 0, 0))
+        surface.set_clip(None)
 
         # draw the world
         self.vpgroup.draw(surface, rect)
@@ -307,12 +318,15 @@ class Level(object):
         if self.time - self.death_reset >= 5 and not self.hero:
             self.new_hero()
 
-        if int(self.time) % 5 == 0:
-            self.spawned = False
+        int_time = int(self.time)
+        if int_time % 3 == 0 and self.spawn_zombie == 0:
+            self.spawn_zombie = 1
+        elif int_time % 3 == 1:
+            self.spawn_zombie = 0
 
-        if int(self.time) % 5 == 4 and not self.spawned:
+        if self.spawn_zombie == 1:
             self.spawn_enemy('zombie')
-            self.spawned = True
+            self.spawn_zombie = 2
 
         self.vpgroup.update(dt)
 

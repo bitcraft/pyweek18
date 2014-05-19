@@ -31,12 +31,6 @@ class Model(models.UprightModel):
         space.remove(self.sensor)
         super(Model, self).kill()
 
-    # def on_collision(self, space, arbiter):
-    #     shape0, shape1 = arbiter.shapes
-    #     if shape0.collision_type == collisions.geometry:
-    #         self.grounded = True
-    #     return 1  # required otherwise ctypes will spam stderr
-
     def update(self, dt):
         if self.motor.rate == 0:
             self.accelerate(self.sprite_direction)
@@ -59,7 +53,7 @@ class Sprite(CastleBatsSprite):
     def __init__(self, shape):
         super(Sprite, self).__init__(shape)
         self.load_animations()
-        self.change_state('idle')
+        self.change_state('walking')
 
     def change_state(self, state=None):
         if state:
@@ -72,7 +66,7 @@ class Sprite(CastleBatsSprite):
 def on_enemy_collision(space, arbiter, **kwargs):
     shape0, shape1 = arbiter.shapes
 
-    model = kwargs['model']
+    model = shape0.model
 
     logger.info('zombie collision %s, %s, %s, %s, %s, %s',
                 shape0.collision_type,
@@ -95,8 +89,22 @@ def on_enemy_collision(space, arbiter, **kwargs):
         return True
 
 
+_collisions_added = False
+
+
+def add_collision_handler(space):
+    for i in (collisions.boundary, collisions.trap):
+        space.add_collision_handler(collisions.enemy, i, on_enemy_collision)
+
+
 def build(space):
+    global _collisions_added
+
     logger.info('building zombie model')
+
+    if not _collisions_added:
+        _collisions_added = True
+        add_collision_handler(space)
 
     model = Model()
 
@@ -137,10 +145,6 @@ def build(space):
     joint = pymunk.PivotJoint(
         body_body, feet_body, feet_body.position, (0, 0))
     space.add(motor, joint)
-
-    for i in (collisions.boundary, collisions.trap):
-        space.add_collision_handler(collisions.enemy, i,
-                                    on_enemy_collision, model=model)
 
     # the model is used to gameplay logic
     model.sprite = body_sprite
