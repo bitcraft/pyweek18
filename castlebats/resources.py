@@ -14,23 +14,29 @@ sounds = None
 images = None
 music = None
 maps = None
+fonts = None
 level_xml = None
 
 
 def load():
     from . import config
 
-    global sounds, images, music, maps, level_xml
+    global sounds, images, music, maps, fonts, level_xml
 
     sounds = dict()
     images = dict()
     music = dict()
     maps = dict()
+    fonts = dict()
 
     resource_path = config.get('paths', 'resource-path')
     resource_path = os.path.abspath(resource_path)
 
     level_xml = _jpath(resource_path, 'maps', 'objects.xml')
+
+    for name, filename in config.items('font-files'):
+        path = _jpath(resource_path, 'fonts', filename)
+        fonts[name] = path
 
     vol = config.getint('sound', 'sound-volume') / 100.
     for name, filename in config.items('sound-files'):
