@@ -7,6 +7,26 @@ recommended is a core 2 duo 2.4 ghz or higher
 slower platforms will experience low framerate and missed animation frames
 
 
+default controls
+================
+
+q    => attack
+w    => jump
+down => crouch
+
+- arrow keys move
+- hold up while walking to climb stairs
+
+
+high jump
+=========
+
+jump 1.6x
+
+> press and hold crouch, then press and hold jump, then release crouch
+
+
+
 notes
 =====
 draw-physics-overlay drawing mode (castlebats.ini) is very slow

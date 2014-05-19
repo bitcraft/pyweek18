@@ -64,14 +64,15 @@ class Model(models.UprightModel):
 
         self.move_power = config.getint('hero', 'move')
         self.jump_power = config.getint('hero', 'jump')
+        self.jump_mod = 1.0
         self.sprite_direction = self.RIGHT
 
     def process(self, cmd):
         # big ugly bunch of if statements... poor man's state machine
 
         input_class, button, state = cmd
-        body = self.sprite
         ignore = self.ignore_buttons.append
+        body = self.sprite
 
         if state == BUTTONUP:
             try:
@@ -91,50 +92,62 @@ class Model(models.UprightModel):
         if body.state[-1] == 'idle':
             if state == BUTTONDOWN or state == BUTTONHELD:
                 if button == P1_LEFT:
-                    self.sprite.state.remove('idle')
-                    self.sprite.change_state('walking')
+                    body.state.remove('idle')
+                    body.change_state('walking')
                     self.accelerate(self.LEFT)
                 elif button == P1_RIGHT:
-                    self.sprite.state.remove('idle')
-                    self.sprite.change_state('walking')
+                    body.state.remove('idle')
+                    body.change_state('walking')
                     self.accelerate(self.RIGHT)
                 elif button == P1_ACTION1:
                     ignore(P1_ACTION1)
-                    self.sprite.change_state('attacking')
+                    body.change_state('attacking')
 
                 if self.grounded:
                     if button == P1_ACTION2:
                         ignore(P1_ACTION2)
-                        self.jump()
+                        self.jump(self.jump_mod)
+                        self.jump_mod = 1.0
 
                     elif button == P1_DOWN:
                         ignore(P1_DOWN)
-                        self.sprite.state.remove('idle')
-                        self.sprite.change_state('crouching')
+                        body.state.remove('idle')
+                        body.change_state('crouching')
                         self.crouch()
 
         elif 'walking' in body.state:
             if self.grounded:
                 if state == BUTTONDOWN:
                     if button == P1_ACTION2:
-                        self.jump()
+                        ignore(P1_ACTION2)
+                        self.jump(self.jump_mod)
+                        self.jump_mod = 1.0
 
             if state == BUTTONUP:
                 if button == P1_LEFT or button == P1_RIGHT:
+                    body.state.remove('walking')
+                    body.change_state('idle')
                     self.brake()
 
         elif 'crouching' in body.state:
-            if state == BUTTONUP:
+            if state == BUTTONHELD:
+                if button == P1_ACTION2:
+                    self.jump_mod = 1.6
+
+            elif state == BUTTONUP:
                 if button == P1_DOWN:
-                    self.sprite.state.remove('crouching')
-                    self.sprite.change_state('standup')
+                    body.state.remove('crouching')
+                    body.change_state('standup')
                     self.uncrouch()
+
+                elif button == P1_ACTION2:
+                    self.jump_mod = 1.0
 
         elif not self.grounded:
             if state == BUTTONDOWN:
                 if button == P1_ACTION1:
-                    if 'attacking' not in body.state:
-                        self.sprite.change_state('attacking')
+                    ignore(P1_DOWN)
+                    body.change_state('attacking')
 
             self.air_move = 0
             if state == BUTTONDOWN or state == BUTTONHELD:
@@ -331,6 +344,7 @@ class Model(models.UprightModel):
         self.joint = joint
 
     def update(self, dt):
+        super(Model, self).update(dt)
         if not self.air_move == 0:
             vel_x = self.air_move * self.air_move_speed
             if abs(self.sprite.shape.body.velocity.x) < abs(vel_x):

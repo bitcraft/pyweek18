@@ -32,7 +32,6 @@ class Basic(object):
         del self.sprite
 
     def update(self, dt):
-        # do not update the sprites!
         pass
 
 
@@ -69,10 +68,24 @@ class UprightModel(Basic):
         space = self.sprite.shape.body._space
         space.remove(self.joint, self.motor)
         self.feet.kill()
+        del self._next_animation
         del self.feet
         del self.motor
         del self.joint
         super(UprightModel, self).kill()
+
+    def update(self, dt):
+        now = time.time()
+        if now - self._debounce_time > .05:
+            self._debounce_time = now
+            if self._grounded:
+                if 'jumping' in self.sprite.state:
+                    self.sprite.state.remove('jumping')
+                    self.sprite.change_state()
+                    self._debounce_time = time.time()
+            else:
+                if 'jumping' not in self.sprite.state:
+                    self.sprite.change_state('jumping')
 
     @property
     def grounded(self):
@@ -82,18 +95,6 @@ class UprightModel(Basic):
     def grounded(self, value):
         value = bool(value)
         self._grounded = value
-
-        if value:
-            if 'jumping' in self.sprite.state:
-                self.sprite.state.remove('jumping')
-                self.sprite.change_state()
-                self._debounce_time = time.time()
-        else:
-            now = time.time()
-            if now - self._debounce_time > .1:
-                if 'jumping' not in self.sprite.state:
-                    self.sprite.change_state('jumping')
-                    self._debounce_time = now
 
     @property
     def position(self):
@@ -121,8 +122,6 @@ class UprightModel(Basic):
         self.motor.rate = amt
 
     def brake(self):
-        self.sprite.state.remove('walking')
-        self.sprite.change_state('idle')
         self.motor.rate = 0
         self.motor.max_force = pymunk.inf
 
