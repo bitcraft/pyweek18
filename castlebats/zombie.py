@@ -94,7 +94,8 @@ _collisions_added = False
 
 def add_collision_handler(space):
     for i in (collisions.boundary, collisions.trap):
-        space.add_collision_handler(collisions.enemy, i, on_enemy_collision)
+        space.add_collision_handler(collisions.enemy, i,
+                                    pre_solve=on_enemy_collision)
 
 
 def build(space):

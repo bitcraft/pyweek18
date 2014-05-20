@@ -92,11 +92,11 @@ class Model(models.UprightModel):
             if state == BUTTONDOWN or state == BUTTONHELD:
                 if button == P1_LEFT:
                     body.state.remove('idle')
-                    body.change_state('walking')
+                    body.change_state('running')
                     self.accelerate(self.LEFT)
                 elif button == P1_RIGHT:
                     body.state.remove('idle')
-                    body.change_state('walking')
+                    body.change_state('running')
                     self.accelerate(self.RIGHT)
                 elif button == P1_ACTION1:
                     ignore(P1_ACTION1)
@@ -114,7 +114,7 @@ class Model(models.UprightModel):
                         body.change_state('crouching')
                         self.crouch()
 
-        elif 'walking' in body.state:
+        elif 'running' in body.state:
             if self.grounded:
                 if state == BUTTONDOWN:
                     if button == P1_ACTION2:
@@ -124,7 +124,7 @@ class Model(models.UprightModel):
 
             if state == BUTTONUP:
                 if button == P1_LEFT or button == P1_RIGHT:
-                    body.state.remove('walking')
+                    body.state.remove('running')
                     body.change_state('idle')
                     self.brake()
 
@@ -373,13 +373,21 @@ class Sprite(CastleBatsSprite):
         ('standup',    50, ((189,  19, 35, 37,  0,  0), )),
         ('jumping',   100, ((128,  62, 47, 49,  0,  0), )),
         ('attacking',  40, ((16,  188, 49, 50,  3,  0),
-                           (207,  190, 42, 48,  6,  0),
-                           (34,   250, 52, 54, 15,  0),
-                           (194,  256, 50, 46, -6,  0))),
-        ('walking',   100, ((304, 128, 36, 40,  0, -1),
+                            (207, 190, 42, 48,  6,  0),
+                            ( 34, 250, 52, 54, 15,  0),
+                            (194, 256, 50, 46, -6,  0))),
+        ('running',   100, ((304, 128, 36, 40,  0, -1),
                             (190, 126, 28, 44, -1,  0),
                             (74,  128, 32, 40,  0, -1),
                             (190, 126, 28, 44, -1,  0))),
+        ('walking',   60, ((   5, 122, 50, 50,  0,  0),
+                            ( 62, 122, 50, 50,  0,  0),
+                            (119, 122, 50, 50,  0,  0),
+                            (176, 122, 50, 50,  0,  0),
+                            (233, 122, 50, 50,  0,  0),
+                            (290, 122, 50, 50,  0,  0),
+                            (347, 122, 50, 50,  0,  0),
+                            (404, 122, 50, 50,  0,  0))),
         ('hurt',       50, ((307,   4, 50, 50,  0,  0),
                             (365,   4, 50, 50,  0,  0))),
     ]
@@ -425,8 +433,8 @@ class Sprite(CastleBatsSprite):
         elif 'crouching' in self.state:
             self.set_animation('crouching', itertools.repeat)
 
-        elif 'walking' in self.state:
-            self.set_animation('walking', itertools.cycle)
+        elif 'running' in self.state:
+            self.set_animation('running', itertools.cycle)
 
         elif 'idle' in self.state:
             self.set_animation('idle', itertools.repeat)
@@ -493,7 +501,8 @@ def build(space):
     model.sword_sensor = sensor
 
     for i in (collisions.boundary, collisions.trap, collisions.enemy):
-        space.add_collision_handler(collisions.hero, i, model.on_collision)
+        space.add_collision_handler(collisions.hero, i,
+                                    pre_solve=model.on_collision)
 
     space.add_collision_handler(collisions.hero, collisions.geometry,
                                 post_solve=model.on_grounded,
@@ -503,6 +512,6 @@ def build(space):
                                 pre_solve=model.on_sword_collision)
 
     space.add_collision_handler(collisions.hero, collisions.stairs,
-                                begin=model.on_stairs_begin,
+                                pre_solve=model.on_stairs_begin,
                                 separate=model.on_stairs_separate)
     return model

@@ -32,12 +32,14 @@ def check_libs():
     logger.info('pymunk version:\t%s', pymunk.__version__)
 
 
-# simple wrapper to keep the screen resizeable
-def init_screen(width, height):
-    return pygame.display.set_mode((width, height), pygame.RESIZABLE)
-
-
 if __name__ == '__main__':
+    # simple wrapper to keep the screen resizeable
+    def init_screen(width, height):
+        if fullscreen:
+            return pygame.display.set_mode((width, height), pygame.FULLSCREEN)
+        else:
+            return pygame.display.set_mode((width, height), pygame.RESIZABLE)
+
     check_libs()
     screen_width = config.getint('display', 'width')
     screen_height = config.getint('display', 'height')
