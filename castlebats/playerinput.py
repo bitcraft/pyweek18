@@ -10,7 +10,7 @@ provides a couple nice features:
         opposite directions ie: left and right pressed simultaneously
 """
 from pygame.locals import *
-from buttons import *
+from .buttons import *
 import pygame
 
 get_pressed = pygame.key.get_pressed
@@ -46,7 +46,7 @@ class KeyboardPlayerInput(PlayerInput):
     def __init__(self, keymap=None):
         if keymap is None:
             self.keymap = KeyboardPlayerInput.default_p1
-        self.rev_keymap = dict((v, k) for k, v in self.keymap.iteritems())
+        self.rev_keymap = dict((v, k) for k, v in self.keymap.items())
         self.held = []
 
     def reset(self):

@@ -156,7 +156,7 @@ class Level(object):
     def handle_moving_platform(self, shape):
         logger.info('loading moving platform %s', shape)
 
-        assert(not shape.body.is_static)
+        #assert(not shape.body.is_static)
 
         shape.layers = 3
         shape.collision_type = 0
@@ -189,12 +189,12 @@ class Level(object):
         s.set_colorkey(colorkey)
         s.fill(colorkey)
 
-        tile = self.tmx_data.getTileImageByGid(gids[0])
+        tile = self.tmx_data.get_tile_image_by_gid(gids[0])
         s.blit(tile, (0, 0))
-        tile = self.tmx_data.getTileImageByGid(gids[1])
+        tile = self.tmx_data.get_tile_image_by_gid(gids[1])
         for x in range(0, rect.width - tile_width, tile_width):
             s.blit(tile, (x, 0))
-        tile = self.tmx_data.getTileImageByGid(gids[2])
+        tile = self.tmx_data.get_tile_image_by_gid(gids[2])
         s.blit(tile, (rect.width - tile_width, 0))
 
         spr = sprite.BoxSprite(shape)
@@ -205,7 +205,7 @@ class Level(object):
         self.add_model(m)
 
     def new_hero(self):
-        typed_objects = [obj for obj in self.tmx_data.getObjects()
+        typed_objects = [obj for obj in self.tmx_data.objects
                          if obj.type is not None]
 
         # find the hero and position her
