@@ -14,7 +14,7 @@ class Basic(object):
     def __init__(self):
         self.sprite = None
         self.alive = True
-        
+
     def __del__(self):
         logger.info("garbage collecting %s", self)
 
@@ -26,7 +26,7 @@ class Basic(object):
     @property
     def position(self):
         return self.sprite.shape.body.position
-    
+
     def kill(self):
         self.sprite.kill()
         del self.sprite
