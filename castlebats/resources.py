@@ -1,6 +1,6 @@
 import os
 
-import pytmx.tmxloader
+from pytmx.util_pygame import load_pygame
 import pygame
 import logging
 logger = logging.getLogger('castlebats.resources')
@@ -57,7 +57,7 @@ def load():
     for name, filename in config.items('map-files'):
         path = _jpath(resource_path, 'maps', filename)
         logger.info("loading %s", path)
-        map = pytmx.tmxloader.load_pygame(path, pixelalpha=True)
+        map = load_pygame(path, pixelalpha=True)
         maps[name] = map
         yield map
 

@@ -65,16 +65,14 @@ class Game(object):
 
         try:
             while running:
-                dt = clock.tick(target_fps)
-                dt /= 3.0
+                # dt = clock.tick(target_fps)
+                dt = clock.tick()
                 state = self.states[0]
                 state.handle_input()
                 state.update(dt)
-                state.update(dt)
-                state.update(dt)
-                hud_group.update()
                 state.draw(surface, level_rect)
-                hud_group.draw(surface)
+                # hud_group.update()
+                # hud_group.draw(surface)
                 scale(surface, screen_size, screen)
                 running = state.running
                 flip()
@@ -125,7 +123,6 @@ class Level(object):
         # set up the physics simulation
         self.space = pymunk.Space()
         self.space.gravity = (0, config.getfloat('world', 'gravity'))
-        shapes = load_shapes(self.tmx_data, self.space, resources.level_xml)
 
         # load the vp group and the single vp for level drawing
         self.vpgroup = sprite.ViewPortGroup(self.space, self.map_data)
@@ -134,14 +131,15 @@ class Level(object):
 
         # set collision types for custom objects
         # and add platforms
+        shapes = load_shapes(self.tmx_data, self.space, resources.level_xml)
         for name, shape in shapes.items():
             logger.info("loaded shape: %s", name)
             if name.startswith('trap'):
                 shape.collision_type = collisions.trap
             elif name.startswith('boundary'):
                 shape.collision_type = collisions.boundary
-            elif name.startswith('moving'):
-                self.handle_moving_platform(shape)
+            # elif name.startswith('moving'):
+            #     self.handle_moving_platform(shape)
             elif name.startswith('stairs'):
                 self.handle_stairs(shape)
 

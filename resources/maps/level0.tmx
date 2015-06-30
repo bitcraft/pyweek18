@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<map version="1.0" orientation="orthogonal" width="500" height="25" tilewidth="16" tileheight="16">
+<map version="1.0" orientation="orthogonal" renderorder="right-down" width="500" height="25" tilewidth="16" tileheight="16" nextobjectid="13">
  <tileset firstgid="1" name="twilight-tiles" tilewidth="16" tileheight="16">
   <image source="twilight-tiles.png" width="256" height="256"/>
  </tileset>
@@ -20,26 +20,26 @@
   </data>
  </layer>
  <objectgroup name="Walls" visible="0">
-  <object type="pymunktmx_box" x="176" y="336" width="640" height="64"/>
-  <object type="pymunktmx_box" x="864" y="336" width="80" height="64"/>
-  <object type="pymunktmx_box" x="992" y="336" width="432" height="64"/>
-  <object type="pymunktmx_box" x="368" y="0" width="352" height="224"/>
-  <object type="pymunktmx_box" x="1616" y="144" width="336" height="48"/>
+  <object id="1" type="pymunktmx_box" x="176" y="336" width="640" height="64"/>
+  <object id="2" type="pymunktmx_box" x="864" y="336" width="80" height="64"/>
+  <object id="3" type="pymunktmx_box" x="992" y="336" width="432" height="64"/>
+  <object id="4" type="pymunktmx_box" x="368" y="0" width="352" height="224"/>
+  <object id="5" type="pymunktmx_box" x="1616" y="144" width="336" height="48"/>
  </objectgroup>
  <objectgroup name="Actors" visible="0">
-  <object name="hero" type="Hero" x="208" y="256" width="48" height="48"/>
+  <object id="6" name="hero" type="Hero" x="208" y="256" width="48" height="48"/>
  </objectgroup>
  <objectgroup name="Traps" visible="0">
-  <object type="pymunktmx_box" x="816" y="384" width="48" height="16"/>
-  <object type="pymunktmx_box" x="944" y="384" width="48" height="16"/>
+  <object id="7" type="pymunktmx_box" x="816" y="384" width="48" height="16"/>
+  <object id="8" type="pymunktmx_box" x="944" y="384" width="48" height="16"/>
  </objectgroup>
  <objectgroup name="Boundaries" visible="0">
-  <object type="pymunktmx_box" x="1424" y="384" width="880" height="16"/>
-  <object type="pymunktmx_box" x="0" y="0" width="16" height="400"/>
-  <object type="pymunktmx_box" x="16" y="384" width="160" height="16"/>
+  <object id="9" type="pymunktmx_box" x="1424" y="384" width="880" height="16"/>
+  <object id="10" type="pymunktmx_box" x="0" y="0" width="16" height="400"/>
+  <object id="11" type="pymunktmx_box" x="16" y="384" width="160" height="16"/>
  </objectgroup>
  <objectgroup name="Physics" visible="0">
-  <object name="moving_1" type="pymunktmx_box" x="1472" y="304" width="112" height="16">
+  <object id="12" name="moving_1" type="pymunktmx_box" x="1472" y="304" width="112" height="16">
    <properties>
     <property name="body.static" value="0"/>
    </properties>

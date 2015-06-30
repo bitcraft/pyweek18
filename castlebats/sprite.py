@@ -5,7 +5,6 @@ from six.moves import zip
 from pymunk.vec2d import Vec2d
 from collections import OrderedDict
 from pygame.transform import rotate, flip
-from pymunk.pygame_util import draw as pymunk_draw
 import pygame
 import pymunk
 import pyscroll
@@ -362,7 +361,7 @@ class ViewPort(pygame.sprite.Sprite):
             overlay = self.overlay_surface
             overlay.set_clip(camera)
             overlay.fill((0, 0, 0))
-            pymunk_draw(overlay, self.parent.space)
+            # pymunk_draw(overlay, self.parent.space)
             surface.blit(overlay, (xx, yy))
 
         # TODO: dirty updates
