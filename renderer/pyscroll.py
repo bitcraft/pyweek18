@@ -70,7 +70,12 @@ class BufferedRenderer(object):
 
         buffer_width = size[0] + tw * self.padding
         buffer_height = size[1] + th * self.padding
-        self.buffer = pygame.Surface((buffer_width, buffer_height))
+
+        if self.colorkey:
+            self.buffer = pygame.Surface((buffer_width, buffer_height))
+        else:
+            self.buffer = pygame.Surface((buffer_width, buffer_height), pygame.SRCALPHA)
+
 
         self.view = pygame.Rect(0, 0,
                                 math.ceil(buffer_width / tw),
@@ -376,9 +381,9 @@ class BufferedRenderer(object):
         blit = self.buffer.blit
         ltw = self.view.left * tw
         tth = self.view.top * th
+        fill = self.buffer.fill
 
         if self.colorkey:
-            fill = self.buffer.fill
             old_tiles = set()
             for x, y, l, tile in iterator:
                 if l == 0:
@@ -392,8 +397,13 @@ class BufferedRenderer(object):
                         if (x, y) not in old_tiles:
                             fill(self.colorkey,
                                  (x * tw - ltw, y * th - tth, tw, th))
+
         else:
             for x, y, l, tile in iterator:
+                if l == 0:
+                    fill((0, 0, 0, 0),
+                         (x * tw - ltw, y * th - tth, tw, th))
+
                 if tile:
                     blit(tile, (x * tw - ltw, y * th - tth))
 

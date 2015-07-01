@@ -56,12 +56,12 @@ class Game(object):
                 flip()
                 flip_event.clear()
 
-        draw_thread = threading.Thread(None, flip_in_thread)
-        draw_thread.setDaemon(True)
-        draw_thread.start()
-
-        import gc
-        gc.disable()
+        # draw_thread = threading.Thread(None, flip_in_thread)
+        # draw_thread.setDaemon(True)
+        # draw_thread.start()
+        #
+        # import gc
+        # gc.disable()
 
         try:
             while running:
@@ -77,7 +77,8 @@ class Game(object):
                     hud_group.draw(surface)
                     scale(surface, screen_size, screen)
 
-                flip_event.set()
+                # flip_event.set()
+                flip()
 
                 running = state.running
                 self.score += 1
