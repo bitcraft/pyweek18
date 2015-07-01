@@ -3,9 +3,10 @@ import pygame
 from pygame.constants import QUIT, KEYDOWN, K_ESCAPE
 import pymunk
 from pymunktmx import load_shapes
-import pyscroll
+import renderer
 import logging
 from castlebats import config, resources, playerinput, sprite, collisions, models, hero, zombie
+import numpy
 
 
 logger = logging.getLogger('castlebats.game')
@@ -36,7 +37,7 @@ class Level(object):
         self.keyboard_input = playerinput.KeyboardPlayerInput()
 
         self.tmx_data = resources.maps['level0']
-        self.map_data = pyscroll.TiledMapData(self.tmx_data)
+        self.map_data = renderer.TiledMapData(self.tmx_data)
         self.map_height = self.map_data.height * self.map_data.tileheight
 
         # manually set all objects in the traps layer to trap collision type
@@ -213,6 +214,24 @@ class Level(object):
         # draw the world
         self.vpgroup.draw(surface, rect)
 
+        # draw lights
+        from PIL import Image, ImageDraw, ImageFilter
+
+        size = (256, 256)
+        image = Image.new('RGBA', size)
+
+        draw = ImageDraw.Draw(image)
+        draw.ellipse((40, 40, 210, 210), (255, 255, 255))
+        image = image.filter(ImageFilter.GaussianBlur(10))
+
+        data = image.tobytes()
+        mode = image.mode
+        lights = pygame.image.fromstring(data, size, mode)
+        size = surface.get_size()
+        scaled_lights = pygame.transform.smoothscale(lights, size)
+
+        surface.blit(scaled_lights, (0, 0), None, pygame.BLEND_MULT)
+
         return rect
 
     def handle_input(self):
@@ -250,15 +269,15 @@ class Level(object):
         if self.time - self.death_reset >= 5 and not self.hero:
             self.new_hero()
 
-        int_time = int(self.time)
-        if int_time % 3 == 0 and self.spawn_zombie == 0:
-            self.spawn_zombie = 1
-        elif int_time % 3 == 1:
-            self.spawn_zombie = 0
-
-        if self.spawn_zombie == 1:
-            self.spawn_enemy('zombie')
-            self.spawn_zombie = 2
+        # int_time = int(self.time)
+        # if int_time % 3 == 0 and self.spawn_zombie == 0:
+        #     self.spawn_zombie = 1
+        # elif int_time % 3 == 1:
+        #     self.spawn_zombie = 0
+        #
+        # if self.spawn_zombie == 1:
+        #     self.spawn_enemy('zombie')
+        #     self.spawn_zombie = 2
 
         self.vpgroup.update(dt)
 

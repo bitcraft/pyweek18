@@ -7,7 +7,7 @@ from collections import OrderedDict
 from pygame.transform import rotate, flip
 import pygame
 import pymunk
-import pyscroll
+import renderer
 import logging
 
 logger = logging.getLogger("castlebats.sprite")
@@ -265,7 +265,7 @@ class ViewPort(pygame.sprite.Sprite):
         self.rect = pygame.Rect(rect)
         md = self.parent.map_data
         colorkey = (128, 64, 128)
-        self.map_layer = pyscroll.BufferedRenderer(
+        self.map_layer = renderer.BufferedRenderer(
             md, self.rect.size, colorkey, 2, True)
         self.map_height = md.height * md.tileheight
         self.center()
@@ -316,7 +316,7 @@ class ViewPort(pygame.sprite.Sprite):
         self.center()
 
     def draw(self, surface, rect):
-        if rect is not self.rect:
+        if not rect == self.rect:
             self.set_rect(rect)
 
         camera = self.rect.copy()
