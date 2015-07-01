@@ -1,14 +1,17 @@
 from math import degrees
 import itertools
-
-from six.moves import zip
-from pymunk.vec2d import Vec2d
 from collections import OrderedDict
+import logging
+
+from pymunk.vec2d import Vec2d
+from PIL import Image, ImageDraw, ImageFilter
+
 from pygame.transform import rotate, flip
 import pygame
 import pymunk
+
+from six.moves import zip
 import renderer
-import logging
 
 logger = logging.getLogger("castlebats.sprite")
 
@@ -147,6 +150,7 @@ class BoxSprite(CastleBatsSprite):
     """
     im really confused why, but box type object need special translations
     """
+
     def update_image(self):
         """
         call this before drawing
@@ -249,10 +253,10 @@ class ViewPort(pygame.sprite.Sprite):
 
     def __init__(self):
         super(ViewPort, self).__init__()
-        self.parent = None
+        self.parent = None           # castlebats.Level
         self.rect = None
         self.camera_vector = None
-        self.map_layer = None
+        self.map_layer = None        # pyscroll renderer
         self.map_height = None
         self.following = None
 
@@ -283,7 +287,7 @@ class ViewPort(pygame.sprite.Sprite):
 
     def add_internal(self, group):
         try:
-            assert(isinstance(group, ViewPortGroup))
+            assert (isinstance(group, ViewPortGroup))
         except AssertionError:
             raise
 
@@ -297,7 +301,7 @@ class ViewPort(pygame.sprite.Sprite):
         if sprite is None:
             self.following = None
         else:
-            assert(isinstance(sprite, CastleBatsSprite))
+            assert (isinstance(sprite, CastleBatsSprite))
             self.following = sprite
 
     def center(self):
@@ -315,9 +319,9 @@ class ViewPort(pygame.sprite.Sprite):
     def update(self, delta):
         self.center()
 
-    def draw(self, surface, rect):
-        if not rect == self.rect:
-            self.set_rect(rect)
+    def draw(self, surface, surface_rect):
+        if not surface_rect == self.rect:
+            self.set_rect(surface_rect)
 
         camera = self.rect.copy()
         camera.center = self.camera_vector
@@ -363,6 +367,28 @@ class ViewPort(pygame.sprite.Sprite):
             overlay.fill((0, 0, 0))
             # pymunk_draw(overlay, self.parent.space)
             surface.blit(overlay, (xx, yy))
+
+        # lights layer
+        # draw circles for lights
+        # blend together
+        # TODO: get easier access to the tmx data?
+        image = Image.new('RGB', surface_rect.size, (200, 200, 200))
+        draw = ImageDraw.Draw(image)
+
+        for shape in self.parent.map_data.tmx.get_layer_by_name('Lights'):
+            light_rect = pygame.Rect(shape.x + xx, shape.y + yy,
+                                     shape.width, shape.height)
+
+            pil_rect = light_rect.x, light_rect.y, light_rect.right, light_rect.bottom
+            print pil_rect
+            draw.ellipse(pil_rect, (0, 0, 0))
+
+        image = image.filter(ImageFilter.GaussianBlur(25))
+        data = image.tobytes()
+        mode = image.mode
+        lights_overlay = pygame.image.fromstring(data, surface_rect.size, mode)
+
+        surface.blit(lights_overlay, surface_rect, None, pygame.BLEND_RGB_SUB)
 
         # TODO: dirty updates
         return self.rect
