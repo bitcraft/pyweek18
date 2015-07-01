@@ -3,3 +3,4 @@ six
 pymunk
 pymunktmx
 pytmx
+pillow

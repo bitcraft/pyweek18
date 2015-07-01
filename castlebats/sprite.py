@@ -388,22 +388,21 @@ class ViewPort(pygame.sprite.Sprite):
         # lights layer
         # draw circles for lights
         # blend together
-        # TODO: get easier access to the tmx data?
         image = Image.new('RGB', surface_rect.size, (200, 200, 200))
         draw = ImageDraw.Draw(image)
 
+        # TODO: get easier access to the tmx data?
         for shape in self.parent.map_data.tmx.get_layer_by_name('Lights'):
-            light_rect = pygame.Rect(shape.x + xx, shape.y + yy,
-                                     shape.width, shape.height)
+            x1 = shape.x + xx
+            y1 = shape.y + yy
+            x2 = x1 + shape.width
+            y2 = y1 + shape.height
+            draw.ellipse((x1, y1, x2, y2), (0, 0, 0))
 
-            pil_rect = light_rect.x, light_rect.y, light_rect.right, light_rect.bottom
-            draw.ellipse(pil_rect, (0, 0, 0))
-
-        image = image.filter(ImageFilter.GaussianBlur(25))
+        # image = image.filter(ImageFilter.GaussianBlur(25))
         data = image.tobytes()
         mode = image.mode
         lights_overlay = pygame.image.fromstring(data, surface_rect.size, mode)
-
         surface.blit(lights_overlay, surface_rect, None, pygame.BLEND_RGB_SUB)
 
         surface.set_clip(None)
