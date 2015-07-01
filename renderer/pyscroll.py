@@ -221,6 +221,14 @@ class BufferedRenderer(object):
 
         return queue
 
+    def get_camera_rect(self):
+        """ Return a rect that represents the camera in world coords
+            This object cannot be used to set the camera.
+
+        :return: pygame.Rect
+        """
+        pass
+
     def draw(self, surface, rect, surfaces=None):
         """ Draw the map onto a surface
 
@@ -290,7 +298,7 @@ class BufferedRenderer(object):
         """ Blit the tiles and block until the tile queue is empty
         """
         self.blit_tiles(self.queue)
-        self.draw_objects()
+        # self.draw_objects()
 
     def draw_objects(self):
         """ Totally unoptimized drawing of objects to the map

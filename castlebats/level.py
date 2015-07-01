@@ -214,24 +214,6 @@ class Level(object):
         # draw the world
         self.vpgroup.draw(surface, rect)
 
-        # draw lights
-        from PIL import Image, ImageDraw, ImageFilter
-
-        size = (256, 256)
-        image = Image.new('RGBA', size)
-
-        draw = ImageDraw.Draw(image)
-        draw.ellipse((40, 40, 210, 210), (255, 255, 255))
-        image = image.filter(ImageFilter.GaussianBlur(10))
-
-        data = image.tobytes()
-        mode = image.mode
-        lights = pygame.image.fromstring(data, size, mode)
-        size = surface.get_size()
-        scaled_lights = pygame.transform.smoothscale(lights, size)
-
-        surface.blit(scaled_lights, (0, 0), None, pygame.BLEND_MULT)
-
         return rect
 
     def handle_input(self):
