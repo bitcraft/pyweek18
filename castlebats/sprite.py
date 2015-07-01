@@ -180,6 +180,7 @@ class ViewPortGroup(pygame.sprite.Group):
         self.map_data = map_data
         self.viewports = OrderedDict()
         self.rect = None
+        self.bg = resources.images['default-bg']
 
     def set_rect(self, rect):
         self.rect = rect
@@ -260,6 +261,7 @@ class ViewPort(pygame.sprite.Sprite):
         self.map_height = None
         self.following = None
 
+        self.draw_background = config.getboolean('display', 'draw-background')
         self.draw_sprites = config.getboolean('display', 'draw-sprites')
         self.draw_map = config.getboolean('display', 'draw-map')
         self.draw_overlay = config.getboolean('display', 'draw-physics-overlay')
@@ -323,6 +325,8 @@ class ViewPort(pygame.sprite.Sprite):
         if not surface_rect == self.rect:
             self.set_rect(surface_rect)
 
+        surface.set_clip(surface_rect)
+
         camera = self.rect.copy()
         camera.center = self.camera_vector
         self.camera_vector.x = self.map_layer.old_x
@@ -334,6 +338,19 @@ class ViewPort(pygame.sprite.Sprite):
 
         surface_blit = surface.blit
         to_draw = list()
+
+        # draw the background
+        if self.draw_background:
+            bg = self.parent.bg
+            left, top = surface_rect.topleft
+            x_factor = xx / 4
+            y_factor = yy / 4
+            top += y_factor
+            surface_blit(bg, (left + x_factor, top))
+            surface_blit(bg, (bg.get_width() + x_factor, top))
+        else:
+            surface.fill((0, 0, 0))
+
         if self.draw_sprites:
             to_draw_append = to_draw.append
             camera_collide = camera.colliderect
@@ -380,7 +397,6 @@ class ViewPort(pygame.sprite.Sprite):
                                      shape.width, shape.height)
 
             pil_rect = light_rect.x, light_rect.y, light_rect.right, light_rect.bottom
-            print pil_rect
             draw.ellipse(pil_rect, (0, 0, 0))
 
         image = image.filter(ImageFilter.GaussianBlur(25))
@@ -389,6 +405,8 @@ class ViewPort(pygame.sprite.Sprite):
         lights_overlay = pygame.image.fromstring(data, surface_rect.size, mode)
 
         surface.blit(lights_overlay, surface_rect, None, pygame.BLEND_RGB_SUB)
+
+        surface.set_clip(None)
 
         # TODO: dirty updates
         return self.rect

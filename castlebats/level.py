@@ -31,9 +31,6 @@ class Level(object):
         self.hud_group = pygame.sprite.Group()
         self._add_queue = set()
         self._remove_queue = set()
-        self.draw_background = config.getboolean('display', 'draw-background')
-        self.bg = resources.images['default-bg']
-
         self.keyboard_input = playerinput.KeyboardPlayerInput()
 
         self.tmx_data = resources.maps['level0']
@@ -200,17 +197,6 @@ class Level(object):
             self._remove_queue.add(model)
 
     def draw(self, surface, rect):
-        # draw the background
-        surface.set_clip(rect)
-        if self.draw_background:
-            left, top = rect.topleft
-            top -= 60
-            surface.blit(self.bg, (left, top))
-            surface.blit(self.bg, (self.bg.get_width(), top))
-        else:
-            surface.fill((0, 0, 0))
-        surface.set_clip(None)
-
         # draw the world
         self.vpgroup.draw(surface, rect)
 
