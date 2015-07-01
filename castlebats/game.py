@@ -47,34 +47,37 @@ class Game(object):
         state = self.states[0]
         state.enter()
 
-        draw_event = threading.Event()
+        flip_event = threading.Event()
+        update_lock = threading.Lock()
 
-        def draw_in_thread():
+        def flip_in_thread():
             while 1:
-                draw_event.wait()
-                scale(surface, screen_size, screen)
+                flip_event.wait()
                 flip()
+                flip_event.clear()
 
-        draw_thread = threading.Thread(None, draw_in_thread)
+        draw_thread = threading.Thread(None, flip_in_thread)
         draw_thread.setDaemon(True)
         draw_thread.start()
 
+        import gc
+        gc.disable()
+
         try:
             while running:
-                # dt = clock.tick(target_fps)
                 dt = clock.tick(120)
+                # dt = clock.tick()
                 state = self.states[0]
                 state.handle_input()
 
-                state.update(dt)
-                hud_group.update()
+                with update_lock:
+                    state.update(dt)
+                    hud_group.update()
+                    state.draw(surface, level_rect)
+                    hud_group.draw(surface)
+                    scale(surface, screen_size, screen)
 
-                draw_event.wait()
-
-                state.draw(surface, level_rect)
-                hud_group.draw(surface)
-
-                draw_event.set()
+                flip_event.set()
 
                 running = state.running
                 self.score += 1

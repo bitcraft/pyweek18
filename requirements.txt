@@ -3,4 +3,3 @@ six
 pymunk
 pymunktmx
 pytmx
-pyscroll
