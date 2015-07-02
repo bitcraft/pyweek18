@@ -180,7 +180,6 @@ class ViewPortGroup(pygame.sprite.Group):
         self.map_data = map_data
         self.viewports = OrderedDict()
         self.rect = None
-        self.bg = resources.images['default-bg']
 
     def set_rect(self, rect):
         self.rect = rect
@@ -358,8 +357,6 @@ class ViewPort(pygame.sprite.Sprite):
                         to_draw_append((sprite.image, new_rect, 1))
 
         if self.draw_map and self.draw_sprites:
-            # self.map_layer.draw(surface, self.rect, to_draw)
-            self.effects_buffer.fill((0, 0, 0, 0))
             self.map_layer.draw(self.effects_buffer, to_draw)
             surface.blit(self.effects_buffer, surface_rect)
 
@@ -393,7 +390,7 @@ class ViewPort(pygame.sprite.Sprite):
             self.draw_circles(color, image, shapes, (xx, yy))
 
             image = image.resize(dynamic_light_mask_size)
-            image = image.filter(ImageFilter.GaussianBlur(10))
+            image = image.filter(ImageFilter.GaussianBlur(8))
             overlay = pygame.image.fromstring(image.tobytes(), image.size, image.mode)
             overlay = scale(overlay, surface_rect.size)
             surface_blit(overlay, surface_rect)
