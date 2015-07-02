@@ -12,7 +12,7 @@ import pymunk
 
 from six.moves import zip
 import renderer
-
+import random
 logger = logging.getLogger("castlebats.sprite")
 
 from . import resources
@@ -272,8 +272,7 @@ class ViewPort(pygame.sprite.Sprite):
         self.rect = pygame.Rect(rect)
         md = self.parent.map_data
         colorkey = (128, 64, 128)
-        self.map_layer = renderer.BufferedRenderer(
-            md, self.rect.size, None, 4, True)
+        self.map_layer = renderer.BufferedRenderer(md, self.rect.size)
         self.map_height = md.height * md.tileheight
         self.center()
 
@@ -332,28 +331,11 @@ class ViewPort(pygame.sprite.Sprite):
 
         camera = self.rect.copy()
         camera.center = self.camera_vector
-        self.camera_vector.x = self.map_layer.old_x
-        self.camera_vector.y = self.map_layer.old_y
 
-        # ox, oy = self.rect.topleft
-        ox, oy = 0, 0
-        xx = -self.camera_vector.x + self.map_layer.half_width + ox
-        yy = -self.camera_vector.y + self.map_layer.half_height + oy
+        xx, yy = -self.camera_vector + surface_rect.center - surface_rect.topleft
 
         surface_blit = surface.blit
         to_draw = list()
-
-        # # draw the background
-        if self.draw_background:
-            bg = self.parent.bg
-            left, top = surface_rect.topleft
-            x_factor = xx / 4
-            y_factor = yy / 4
-            top += y_factor
-            surface_blit(bg, (left + x_factor, top))
-            surface_blit(bg, (bg.get_width() + x_factor, top))
-        else:
-            surface.fill((0, 0, 0))
 
         # map_buffer = pygame.Surface(surface_rect.size, pygame.SRCALPHA)
 
@@ -373,12 +355,12 @@ class ViewPort(pygame.sprite.Sprite):
 
                     if camera_collide(new_rect):
                         new_rect = new_rect.move(xx, yy)
-                        to_draw_append((sprite.image, new_rect, 0))
+                        to_draw_append((sprite.image, new_rect, 1))
 
         if self.draw_map and self.draw_sprites:
             # self.map_layer.draw(surface, self.rect, to_draw)
             self.effects_buffer.fill((0, 0, 0, 0))
-            self.map_layer.draw(self.effects_buffer, self.effects_buffer.get_rect(), to_draw)
+            self.map_layer.draw(self.effects_buffer, to_draw)
             surface.blit(self.effects_buffer, surface_rect)
 
         elif self.draw_sprites:
@@ -422,17 +404,20 @@ class ViewPort(pygame.sprite.Sprite):
         # blur
         # paste on screen
 
-        shapes = self.parent.map_data.tmx.get_layer_by_name('Bloom')
-        rects = [make_rect(i) for i in shapes]
-        draw_bloom = not self.following.rect.collidelist(rects)
+        draw_backlight = 0
+        if self.following:
+            backlight_sensor = self.following.rect
+            shapes = self.parent.map_data.tmx.get_layer_by_name('Backlight')
+            rects = [make_rect(i) for i in shapes]
+            draw_backlight = not backlight_sensor.collidelist(rects) == -1
 
-        if draw_bloom:
+        if draw_backlight:
             image = Image.new('RGBA', surface_rect.size, (0, 0, 0, 24))
 
             color = (255, 239, 153, 128)
 
             # # TODO: get easier access to the tmx data?
-            shapes = self.parent.map_data.tmx.get_layer_by_name('Bloom')
+            shapes = self.parent.map_data.tmx.get_layer_by_name('Backlight')
             self.draw_circles(color, image, shapes, (xx, yy))
 
             image = image.resize(dynamic_bloom_mask_size)
@@ -443,7 +428,7 @@ class ViewPort(pygame.sprite.Sprite):
             image.paste(inv_a, (0, 0), mask=a)
             # image.putalpha(a)
 
-            image = image.filter(ImageFilter.GaussianBlur(1))
+            image = image.filter(ImageFilter.GaussianBlur(2))
 
             # image = image.filter(ImageFilter.BLUR)
             overlay = pygame.image.fromstring(image.tobytes(), image.size, image.mode)
