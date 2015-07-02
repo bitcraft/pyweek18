@@ -32,17 +32,8 @@ class TiledMapData(object):
         return self.tmx.height
 
     @property
-    def visible_layers(self):
-        return (int(i) for i in self.tmx.visible_layers)
-
-    @property
     def visible_tile_layers(self):
         return self.tmx.visible_tile_layers
-
-    @property
-    def visible_object_layers(self):
-        return (layer for layer in self.tmx.visible_layers
-                if isinstance(layer, pytmx.TiledObjectGroup))
 
     def get_tile_image(self, position):
         """ Return a surface for this position.

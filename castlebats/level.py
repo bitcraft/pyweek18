@@ -6,7 +6,6 @@ from pymunktmx import load_shapes
 import renderer
 import logging
 from castlebats import config, resources, playerinput, sprite, collisions, models, hero, zombie
-import numpy
 
 
 logger = logging.getLogger('castlebats.game')
