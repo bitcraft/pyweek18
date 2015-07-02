@@ -5,6 +5,7 @@ import logging
 
 from pymunk.vec2d import Vec2d
 from PIL import Image, ImageDraw, ImageFilter, ImageChops
+from pygame.image import fromstring as pyim_fromstring
 
 from pygame.transform import rotate, flip, scale
 import pygame
@@ -271,7 +272,9 @@ class ViewPort(pygame.sprite.Sprite):
         self.rect = pygame.Rect(rect)
         md = self.parent.map_data
         colorkey = (128, 64, 128)
+
         self.map_layer = renderer.BufferedRenderer(md, self.rect.size)
+
         self.map_height = md.height * md.tileheight
         self.center()
 
@@ -326,18 +329,18 @@ class ViewPort(pygame.sprite.Sprite):
         if not surface_rect == self.rect:
             self.set_rect(surface_rect)
 
-        surface.set_clip(surface_rect)
-
         camera = self.rect.copy()
         camera.center = self.camera_vector
 
         xx, yy = -self.camera_vector + surface_rect.center - surface_rect.topleft
 
-        surface_blit = surface.blit
+        # TODO: take out fill/clear after debug
+        effects_buffer = self.effects_buffer
+        effects_buffer.fill((0, 0, 0), surface_rect)
+        effects_blit = effects_buffer.blit
+        effects_rect = effects_buffer.get_rect()
+
         to_draw = list()
-
-        # map_buffer = pygame.Surface(surface_rect.size, pygame.SRCALPHA)
-
         if self.draw_sprites:
             to_draw_append = to_draw.append
             camera_collide = camera.colliderect
@@ -357,22 +360,21 @@ class ViewPort(pygame.sprite.Sprite):
                         to_draw_append((sprite.image, new_rect, 1))
 
         if self.draw_map and self.draw_sprites:
-            self.map_layer.draw(self.effects_buffer, to_draw)
-            surface.blit(self.effects_buffer, surface_rect)
+            self.map_layer.draw(effects_buffer, to_draw)
 
         elif self.draw_sprites:
             for s, r, l in to_draw:
-                surface_blit(s, r)
+                effects_blit(s, r)
 
         elif self.draw_map:
-            self.map_layer.draw(surface, self.rect)
+            self.map_layer.draw(effects_buffer)
 
         if self.draw_overlay:
             overlay = self.overlay_surface
             overlay.set_clip(camera)
             overlay.fill((0, 0, 0))
             # pymunk_draw(overlay, self.parent.space)
-            surface.blit(overlay, (xx, yy))
+            effects_buffer.blit(overlay, (xx, yy))
 
         # # lights layer
         # # draw circles for lights
@@ -382,7 +384,7 @@ class ViewPort(pygame.sprite.Sprite):
 
         draw_lights = 1
         if draw_lights:
-            image = Image.new('RGBA', surface_rect.size, (0, 0, 0, 230))
+            image = Image.new('RGBA', effects_rect.size, (0, 0, 0, 200))
 
             # TODO: get easier access to the tmx data?
             color = (0, 0, 0, 0)
@@ -390,10 +392,10 @@ class ViewPort(pygame.sprite.Sprite):
             self.draw_circles(color, image, shapes, (xx, yy))
 
             image = image.resize(dynamic_light_mask_size)
-            image = image.filter(ImageFilter.GaussianBlur(8))
-            overlay = pygame.image.fromstring(image.tobytes(), image.size, image.mode)
-            overlay = scale(overlay, surface_rect.size)
-            surface_blit(overlay, surface_rect)
+            image = image.filter(ImageFilter.GaussianBlur(4))
+            overlay = pyim_fromstring(image.tobytes(), image.size, image.mode)
+            overlay = scale(overlay, effects_rect.size)
+            effects_blit(overlay, (0, 0))
 
         # bloom layer
         # draw circles for lights
@@ -401,38 +403,37 @@ class ViewPort(pygame.sprite.Sprite):
         # blur
         # paste on screen
 
-        draw_backlight = 0
-        if self.following:
-            backlight_sensor = self.following.rect
-            shapes = self.parent.map_data.tmx.get_layer_by_name('Backlight')
-            rects = [make_rect(i) for i in shapes]
-            draw_backlight = not backlight_sensor.collidelist(rects) == -1
+        # needs more map things
+        # if self.following:
+        #     backlight_sensor = self.following.rect
+        #     shapes = self.parent.map_data.tmx.get_layer_by_name('Backlight')
+        #     rects = [make_rect(i) for i in shapes]
+        #     draw_backlight = not backlight_sensor.collidelist(rects) == -1
+        #
+        # draw_backlight = 1
+        # if draw_backlight:
+        #     image = Image.new('RGBA', effects_rect.size, (0, 0, 0, 24))
+        #
+        #     color = (255, 239, 153, 128)
+        #
+        #     # # TODO: get easier access to the tmx data?
+        #     shapes = self.parent.map_data.tmx.get_layer_by_name('Backlight')
+        #     self.draw_circles(color, image, shapes, (xx, yy))
+        #
+        #     image = image.resize(dynamic_bloom_mask_size)
+        #     small_buffer = scale(effects_buffer, dynamic_bloom_mask_size)
+        #     pygame_mask = pygame_to_pil_img(small_buffer)
+        #     r, g, b, a = pygame_mask.split()
+        #     inv_a = ImageChops.invert(a)
+        #     image.paste(a, (0, 0), mask=a)
+        #     #image.putalpha(a)
+        #     image = image.filter(ImageFilter.GaussianBlur(2))
+        #
+        #     overlay = pyim_fromstring(image.tobytes(), image.size, image.mode)
+        #     overlay = scale(overlay, effects_rect.size)
+        #     effects_blit(overlay, (0, 0))
 
-        if draw_backlight:
-            image = Image.new('RGBA', surface_rect.size, (0, 0, 0, 24))
-
-            color = (255, 239, 153, 128)
-
-            # # TODO: get easier access to the tmx data?
-            shapes = self.parent.map_data.tmx.get_layer_by_name('Backlight')
-            self.draw_circles(color, image, shapes, (xx, yy))
-
-            image = image.resize(dynamic_bloom_mask_size)
-            small_buffer = pygame.transform.scale(self.effects_buffer, dynamic_bloom_mask_size)
-            pygame_mask = pygame_to_pil_img(small_buffer)
-            r, g, b, a = pygame_mask.split()
-            inv_a = ImageChops.invert(a)
-            image.paste(inv_a, (0, 0), mask=a)
-            # image.putalpha(a)
-
-            image = image.filter(ImageFilter.GaussianBlur(2))
-
-            # image = image.filter(ImageFilter.BLUR)
-            overlay = pygame.image.fromstring(image.tobytes(), image.size, image.mode)
-            overlay = scale(overlay, surface_rect.size)
-            surface_blit(overlay, surface_rect, None)
-
-        surface.set_clip(None)
+        surface.blit(effects_buffer, surface_rect)
 
         # TODO: dirty updates
         return self.rect

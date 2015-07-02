@@ -22,7 +22,6 @@ import pygame
 def check_libs():
     import pytmx
     import pymunktmx
-    import renderer
     logger.info('pygame version:\t%s', pygame.__version__)
     logger.info('pytmx version:\t%s', pytmx.__version__)
     logger.info('pymunktmx version:\t%s', pymunktmx.__version__)

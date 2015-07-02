@@ -65,7 +65,7 @@ class Game(object):
 
         try:
             while running:
-                dt = clock.tick()
+                dt = clock.tick(120)
                 # dt = clock.tick()
                 state = self.states[0]
                 state.handle_input()
