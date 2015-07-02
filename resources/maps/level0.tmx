@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<map version="1.0" orientation="orthogonal" renderorder="right-down" width="500" height="25" tilewidth="16" tileheight="16" nextobjectid="32">
+<map version="1.0" orientation="orthogonal" renderorder="right-down" width="500" height="25" tilewidth="16" tileheight="16" nextobjectid="41">
  <tileset firstgid="1" name="twilight-tiles" tilewidth="16" tileheight="16">
   <image source="twilight-tiles.png" width="256" height="256"/>
  </tileset>
@@ -9,33 +9,26 @@
  <tileset firstgid="513" name="parallaxBG-interior2" tilewidth="16" tileheight="16">
   <image source="parallaxBG-interior2.png" width="256" height="320"/>
  </tileset>
+ <layer name="Parallax Layer" width="500" height="25">
+  <data encoding="base64" compression="zlib">
+   eJzt3EdrFVEchvGrO7+Bfi0XbmJbuYmN2LFiTBSsWKJgxRIVW8AWsYIVrHvr3rq3PkIGx/HkTO5FnXPgeeFHZm5eDnP+WQy5MNNq5ZeJ4yRJUlmOaXpmkiSlJsc0PTNJklKTY5qemSRJqckxTc9MkqTU5JimZyZJUmpyTNMzkyQpNTmm6ZlJkpSaHNP0zCRJSk2OaXpmkiSlJsfU7akLUzEN0zEDMyOdiaN0JEnKRY6p21M3ZmMO5mIe5nfQkSQpFzmmbk/LsQIrsQqrsaaDjiRJucgxdXvaiE3YjC3Yim0ddCRJykWO+XndPViAhViExViCpdiLfdiPAziIQ5V9xzqxtZv+e0mSFJJ6TuAklo0oX3sv1qEP/ViPDTiF0ziDsziHocq+Y53QusXaoRmG+rGZt9uXJKlO6hnGlVb4fr4DO7ELA9iNPbiKa7iOG7iJW5V9xzqhdYu1QzMM9WMzb7cvSVKdVLJg5OciLC59vqyifO1HcBTHMIjjOIGHeITHeIKneFbZd6wTWrdYOzTDUD8283b7kiTVSSFr0Tty3If+0u/K9/Lh1u/39PO4gIu4hMsYxnO8wEu8wmu8qew71gmtW6wdmmGoH5t5u31JkuqkkO2V84HScXEvH2r9+T/6bdzBXdzDfTzAW7zDe3zAR3yq7DvWCa1brB2aYagfm3m7fUmS6qSQw5XzwdJx9fv26nfuIZ/xBV/xDd9/7nN8+50mdVXOfX+dJCkmpUwYo6Zn9j90Bz7z/XWSpNE0lcmV8ymYNEZNz0ySpNT8q8zqoO/9XJKkzvyt9LR+PXMWS/EsWrlfPKPm/Tyu+o47SZIKPwDTzQS2
+  </data>
+ </layer>
  <layer name="Tile Layer 1" width="500" height="25">
   <data encoding="base64" compression="zlib">
-   eJzt3FdrFFEYxvGZeOVH8OtY7203sWFDiSWkGbFiTIxYsUTBFiwxYgvYIlawgvXeem+9tz6Lu2RnPXsmM+xyztH/Az92d/LuITMZeBiys1EUXqbEfogBAPBEiHHd4/Q5AMA3IcZ1j9PnAADfhBjXPU6fAwB8E2Jc9zh9DgDwTYhx3eP0OQDANyHGdY/T5wAA34QY1z1OnwMAfBNiXPc4fQ4A8E2Icd3j9e7zJdrHpTXm+jwDANRXiEnr2UaZJbNljsyVeTlmXPV5p/ZxdY25Ps8AAPUVYtJ6tkmWyXJZISulOceMqz7v1T5urTHX5xkAoL5CTFrPrpG1sk7WywbZmGOG/58DAEIRYtJ6dptslx2yU3bJ7hwz9DkAIBT1zgSZKJMsM+Mr5iYXt1f7XFihS1ukVdqkXTpklXTKITksR+SoHJP+ONnFthnb2vQ5AMBHPqfwubBBORONfK6rvE+7ZLN0S49skV45K+fkvFyQizIUJ99rmzGtW1rb1OemedsxzzoPAEAan1Po82G5Hpn7fK/sk/3SJwfkoNyQm3JLbssduRsn32ubMa1bWtvU56Z52zHPOg8AQBpf0lp8bJeO4nPTfVvlfXpCTsopGZDTMihP5Kk8k+fyQl7GyffaZkzrltY29blp3nbMs84DAJDGh2ySruLzbukpPq/s8+Eo2emX5LJckatyTYbllbyWN/JW3sn7ONnFthnTuqW1TX1umrcd86zzAACk8SF7Kl73FR/L+3wo+vsa/Z7clwfyUB7JY/kgH+WTfJYv8jVOdrFtxrRuaW1Tn5vmbcc86zwAAGl8yPGK1wPFx2rfk5Z2H9k3+S4/5Kf8KuxnQ/YZl/erNVa8Ln1/nevzBQDgp1ql2j1nldvHWLaPHaVqKe/aPD+vV/L8XZoM25o9OF8AAH6qVabKNJkuM2Rmju3jRqla/qU+BwAgi1plviyQhbJIFufYnrXPC79+QzRyzU+fAwD+V7VKS/TnnrO2KHnPWZbtXJ/b9XtwvgAA/PQb8/DjVw==
+   eJzt3LtKxEAUgOERKx/B1/Hae3sAb2jrDW1dFG0tfAAL0c5yfTvP4oA6mGU3JLsJfB/8ZDKkSHeaTFICAAAAAAAAAAAAAAAAAAAAAADacBKdNhwAMFvX0U3DAQCz9RA9NhwAAAAAAP22Gq1F62OeWSme28j7Vd+FAQD9Mfou7C16Tz/fdW0uzPWVAIApjeb5MPpM5jkA9MF5vl5GV3n937kt8xwAuuk2GuT1XXSf1+U8HyZnqQGgq56K++d8/T3PP5J/owBAl70U96/5WvWfNACgHVVnzsr9xTH7SxMGALRjK9qOdqLdaK/G/vKEAQDt2I8OosPoKDqusW+eA8B8naXvM2cX6e+Zs2n2zXMAqOcLCG9SSQ==
   </data>
  </layer>
  <layer name="Tile Layer 2" width="500" height="25">
+  <properties>
+   <property name="parallax" value="2, 0"/>
+  </properties>
   <data encoding="base64" compression="zlib">
    eJzt2jluFUEUheHWyxhihIEN2HgDDBtgiBgsAY6YZBsiJmFDxCQxRBiQjB2BjQRmAwwbYNgAQwQkDIvgtMja1VX1bqlK/R7/J53olrrDoyrdqspnszKSIW3W9apqvbJB2djrfw4AANYq3ecj6ugtylZlm6OvQ3MAALBW6T4fVUePKduVcUdfh+Y+1rs9bwIAgEFXus93qC93KruU3Y7uDM19rHd73gQAAIOudJ/vUV/uVfYp+x3dGZr7WO/2KW8CAAB0Qek+P6K+PKocUyYd3Rma+1jv9ilvAgAAdEHpPp9WX84oZ5Szju4MzX2sd/uUNwEAALqgdJ/Pqi/nlCvKVUd3huY+1rt9ypsAAABdULrPb6sv7yh3lXuO7gzNfax3+5Q3AQAAuqB0ny+oLx8ri8qSoztDcx/r3T7lTQAAgC4o3efP1ZcvlFXlpaM7Q3Mf690+5U0AAIAuKN3nr9SXr5U3yltHd4bmPta7fcqbAAAAXVC6z9+pL98rH5SPju4MzX2sd/uUN4Fa7D4de3cAgFzqPh9tJGeff1KPfVa+KF8dnRaa+1jv9ilvArXYfTr27gAAufQypc1PDX8pv5U/joOhuY/1bp/yJlCL3adj7w4AkMsB5aBySDmsTBjOxX4jN+vdPuVNoBa7T8feHQAgl+PKCeWkcko5bTgX+43crHf7lDeBWuw+HXt3AIBczinnlQvKReWS4VzsN4ZV7D5d6t4dAABtrinXlRvKTeWW4VzsN4ZV7D5d6t4dAABt7ivzygPlofLIcC72G8Mqdp8ude8OAIA2T5SnyrKyojwznIv9xrCK3adL3bsDAPw/NmVOrAVHZhpnpiLm0wXS/G+/YvfpUvfuAAAobdaRucaZy33Oc6X5XwAA8A99DgDA4GvrzW/Kd+VH5e5z35w+BwAMsr+mfkCY
   </data>
  </layer>
- <objectgroup name="Bloom" visible="0">
+ <objectgroup name="Backlight" visible="0">
   <object id="22" x="-199" y="-91" width="834" height="761">
-   <ellipse/>
-  </object>
-  <object id="26" x="770" y="264" width="49" height="38">
-   <ellipse/>
-  </object>
-  <object id="27" x="1127" y="252" width="43" height="48">
-   <ellipse/>
-  </object>
-  <object id="28" x="1311" y="258" width="43" height="35">
-   <ellipse/>
-  </object>
-  <object id="29" x="866" y="174" width="48" height="188">
-   <ellipse/>
-  </object>
-  <object id="31" x="1008" y="174" width="60" height="174">
    <ellipse/>
   </object>
  </objectgroup>
@@ -66,7 +59,7 @@
   </object>
  </objectgroup>
  <objectgroup name="Stairs" visible="0"/>
- <objectgroup name="Lights">
+ <objectgroup name="Lights" visible="0">
   <object id="13" x="736" y="168" width="221" height="168">
    <ellipse/>
   </object>

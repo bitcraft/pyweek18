@@ -50,7 +50,10 @@ class TiledMapData(object):
         Returns a blank tile if cannot be loaded.
         position is x, y, layer tuple
         """
-        return self.tmx.get_tile_image(*position)
+        try:
+            return self.tmx.get_tile_image(*position)
+        except ValueError:
+            return None
 
     def get_tile_image_by_gid(self, gid):
         """ Return surface for a gid (experimental)

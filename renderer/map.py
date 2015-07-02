@@ -10,18 +10,22 @@ class BufferedRenderer(object):
     Base class to render a map onto a buffer that is suitable for blitting onto
     the screen as one surface, rather than a collection of tiles.
     """
-    def __init__(self, data, size):
+    def __init__(self, data, size, clamp_camera=False):
 
         # default options
-        self.padding = 10
+        self.padding = 2
+        self.clamp_camera = clamp_camera
         self.clipping = True
 
         # internal defaults
         self.data = data
-        self.view = None
-        self.buffer = None
         self.xoffset = None
         self.yoffset = None
+        self.old_x = None
+        self.old_y = None
+        self.buffer = None
+        self.map_rect = None
+        self.view = None
         self.half_width = None
         self.half_height = None
 
@@ -34,14 +38,22 @@ class BufferedRenderer(object):
         tw = self.data.tilewidth
         th = self.data.tileheight
 
-        buffer_width = math.ceil(size[0] / tw) + self.padding
-        buffer_height = math.ceil(size[1] / th) + self.padding
+        buffer_width = size[0] + tw * self.padding
+        buffer_height = size[1] + th * self.padding
 
-        self.view = pygame.Rect(0, 0, buffer_width, buffer_height)
-        self.buffer = pygame.Surface((buffer_width * tw, buffer_height * th), pygame.SRCALPHA)
+        self.buffer = pygame.Surface((buffer_width, buffer_height), pygame.SRCALPHA)
 
-        self.half_width = self.buffer.get_width() / 2
-        self.half_height = self.buffer.get_height() / 2
+        self.view = pygame.Rect(0, 0,
+                                math.ceil(buffer_width / tw),
+                                math.ceil(buffer_height / th))
+
+        # this is the pixel size of the entire map
+        self.map_rect = pygame.Rect(0, 0,
+                                self.data.width * tw,
+                                self.data.height * th)
+
+        self.half_width = size[0] / 2
+        self.half_height = size[1] / 2
 
         # quadtree is used to correctly draw tiles that cover 'sprites'
         def make_rect(x, y):
@@ -56,7 +68,8 @@ class BufferedRenderer(object):
 
         self.xoffset = 0
         self.yoffset = 0
-        self.redraw()
+        self.old_x = 0
+        self.old_y = 0
 
     def scroll(self, vector):
         """ scroll the background in pixels
@@ -68,6 +81,20 @@ class BufferedRenderer(object):
         """
         x, y = [round(i, 0) for i in coords]
 
+        if self.clamp_camera:
+            if x < self.half_width:
+                x = self.half_width
+            elif x + self.half_width > self.map_rect.width:
+                x = self.map_rect.width - self.half_width
+            if y < self.half_height:
+                y = self.half_height
+            elif y + self.half_height > self.map_rect.height:
+                y = self.map_rect.height - self.half_height
+
+        if self.old_x == x and self.old_y == y:
+            return
+
+        hpad = int(self.padding / 2)
         tw = self.data.tilewidth
         th = self.data.tileheight
 
@@ -76,20 +103,28 @@ class BufferedRenderer(object):
         top, self.yoffset = divmod(y - self.half_height, th)
 
         # determine if tiles should be redrawn
-        dx = int(left - self.view.left)
-        dy = int(top - self.view.top)
+        dx = int(left - hpad - self.view.left)
+        dy = int(top - hpad - self.view.top)
 
-        half_padding = int(self.padding / 2)
-        self.xoffset += half_padding * tw
-        self.yoffset += half_padding * th
+        # adjust the offsets of the buffer is placed correctly
+        self.xoffset += hpad * tw
+        self.yoffset += hpad * th
+
+        # completely redraw screen if position has changed significantly
+        if (abs(dx) >= 2) or (abs(dy) >= 2):
+            self.view = self.view.move((dx, dy))
+            self.redraw()
 
         # adjust the view if the view has changed without a redraw
-        if not dx == dy == 0:
+        elif (abs(dx) >= 1) or (abs(dy) >= 1):
+            # mark portions to redraw
             self.view = self.view.move((dx, dy))
-            # self.buffer.scroll(-dx * tw, -dy * th)
-            # self.update_queue(self.get_edge_tiles((dx, dy)))
-            # self.flush()
-            self.redraw()
+
+            # scroll the image (much faster than redrawing the entire map!)
+            self.buffer.scroll(-dx * tw, -dy * th)
+            self.update_queue(self.get_edge_tiles((dx, dy)))
+
+        self.old_x, self.old_y = x, y
 
     def update_queue(self, iterator):
         """ Add some tiles to the queue
@@ -135,13 +170,30 @@ class BufferedRenderer(object):
 
         return queue
 
-    def draw(self, surface, surfaces=None):
+    def draw(self, surface, rect, surfaces=None):
         """ Draw the layer onto a surface
+
+        pass a rect that defines the draw area for:
+            dirty screen update support
+            drawing to an area smaller that the whole window/screen
+
+        surfaces may optionally be passed that will be blited onto the surface.
+        this must be a list of tuples containing a layer number, image, and
+        rect in screen coordinates.  surfaces will be drawn in order passed,
+        and will be correctly drawn with tiles from a higher layer overlapping
+        the surface.
         """
         surblit = surface.blit
         ox, oy = self.xoffset, self.yoffset
+        ox -= rect.left
+        oy -= rect.top
 
-        # draw the entire map to the surface, taking in account the scrolling offset
+        # need to set clipping otherwise the map will draw outside its area
+        original_clip = surface.get_clip()
+        surface.set_clip(rect)
+
+        # draw the entire map to the surface,
+        # taking in account the scrolling offset
         surblit(self.buffer, (-ox, -oy))
 
         if surfaces is not None:
@@ -162,6 +214,10 @@ class BufferedRenderer(object):
                                          int(y / th + top), int(l)))
                         if tile:
                             surblit(tile, (x - ox, y - oy))
+
+        surface.set_clip(original_clip)
+
+        return [rect]
 
     def flush(self):
         """ Blit the tiles and block until the tile queue is empty
