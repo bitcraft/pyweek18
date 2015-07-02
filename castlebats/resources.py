@@ -50,7 +50,7 @@ def load():
     for name, filename in config.items('image-files'):
         path = _jpath(resource_path, 'images', filename)
         logger.info("loading %s", path)
-        image = pygame.image.load(path)
+        image = pygame.image.load(path).convert_alpha()
         images[name] = image
         yield image
 

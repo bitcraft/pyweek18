@@ -7,7 +7,7 @@ from pymunk.vec2d import Vec2d
 from PIL import Image, ImageDraw, ImageFilter, ImageChops
 from pygame.image import fromstring as pyim_fromstring
 
-from pygame.transform import rotate, flip, scale
+from pygame.transform import rotozoom, rotate, flip, scale
 import pygame
 import pymunk
 
@@ -160,9 +160,8 @@ class BoxSprite(CastleBatsSprite):
         """
         angle = degrees(self.shape.body.angle)
         if not angle == self._old_angle or self.dirty:
-            image = rotate(self.original_surface, angle)
-            self.image = image.convert()
-            self.rect = image.get_rect()
+            self.image = rotozoom(self.original_surface, angle, 1)
+            self.rect = self.image.get_rect()
             self._old_angle = angle
             self.dirty = False
 
@@ -384,13 +383,11 @@ class ViewPort(pygame.sprite.Sprite):
 
         draw_lights = 1
         if draw_lights:
-            image = Image.new('RGBA', effects_rect.size, (0, 0, 0, 200))
-
-            # TODO: get easier access to the tmx data?
             color = (0, 0, 0, 0)
-            shapes = self.parent.map_data.tmx.get_layer_by_name('Lights')
-            self.draw_circles(color, image, shapes, (xx, yy))
 
+            image = Image.new('RGBA', effects_rect.size, (0, 0, 0, 200))
+            shapes = self.get_dynamic_lights()
+            self.draw_circles(color, image, shapes, (xx, yy))
             image = image.resize(dynamic_light_mask_size)
             image = image.filter(ImageFilter.GaussianBlur(4))
             overlay = pyim_fromstring(image.tobytes(), image.size, image.mode)
@@ -437,6 +434,10 @@ class ViewPort(pygame.sprite.Sprite):
 
         # TODO: dirty updates
         return self.rect
+
+    def get_dynamic_lights(self):
+        shapes = self.parent.map_data.tmx.get_layer_by_name('Lights')
+        return shapes
 
     def draw_circles(self, color, image, shapes, offset=(0, 0)):
         draw = ImageDraw.Draw(image)

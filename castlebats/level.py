@@ -50,6 +50,9 @@ class Level(object):
             elif layer.name == 'Stairs':
                 for index, obj in enumerate(layer):
                     obj.name = 'stairs_{}'.format(index)
+            elif layer.name == 'Hanging':
+                for index, obj in enumerate(layer):
+                    obj.name = 'hanging_{}'.format(index)
 
         # set up the physics simulation
         self.space = pymunk.Space()
@@ -73,6 +76,8 @@ class Level(object):
             #     self.handle_moving_platform(shape)
             elif name.startswith('stairs'):
                 self.handle_stairs(shape)
+            elif name.startswith('hanging'):
+                self.handle_hanging(shape)
 
         self.new_hero()
 
@@ -84,7 +89,6 @@ class Level(object):
 
     def handle_moving_platform(self, shape):
         logger.info('loading moving platform %s', shape)
-
         # assert(not shape.body.is_static)
 
         shape.layers = 3
@@ -128,6 +132,40 @@ class Level(object):
 
         spr = sprite.BoxSprite(shape)
         spr.original_surface = s
+        m = models.Basic()
+        m.sprite = spr
+
+        self.add_model(m)
+
+    def handle_hanging(self, shape):
+        logger.info('loading hanging %s', shape)
+        # assert(not shape.body.is_static)
+
+        shape.cache_bb()
+        bb = shape.bb
+        rect = pygame.Rect((bb.left, bb.top,
+                            bb.right - bb.left, bb.top - bb.bottom))
+        rect.normalize()
+
+        shape.layers = 3
+        shape.collision_type = 0
+        # shape.body.velocity_func = ignore_gravity
+        # shape.body.mass = 1
+        # shape.body.moment = pymunk.moment_for_box(1, rect.width, rect.height)
+
+        # anchor1 = shape.body.position - (0, 0)
+        # joint = pymunk.PivotJoint(self.space.static_body, shape.body, anchor1,
+        #                           (0, 0))
+        #
+        # self.space.add(joint)
+
+        s = pygame.Surface((rect.width, rect.height))
+        s.fill((255, 255, 255))
+
+        print resources.images.keys()
+
+        spr = sprite.BoxSprite(shape)
+        spr.original_surface = resources.images['hanging']
         m = models.Basic()
         m.sprite = spr
 

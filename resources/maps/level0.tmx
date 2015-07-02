@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<map version="1.0" orientation="orthogonal" renderorder="right-down" width="500" height="25" tilewidth="16" tileheight="16" nextobjectid="41">
+<map version="1.0" orientation="orthogonal" renderorder="right-down" width="500" height="25" tilewidth="16" tileheight="16" nextobjectid="45">
  <tileset firstgid="1" name="twilight-tiles" tilewidth="16" tileheight="16">
   <image source="twilight-tiles.png" width="256" height="256"/>
  </tileset>
@@ -35,7 +35,7 @@
  </layer>
  <layer name="Tile Layer 2" width="500" height="25">
   <data encoding="base64" compression="zlib">
-   eJzt2jduVUEYxfGr1xFaEAY2YGADhIokESqSRKgIFjZUJGFDRbCETUWSDFQkibABMBsgbIBQAQ1hEZwruuu5M/O+0Yzue/x/0qm+8X3ujmb0VVU+K5SRDGmzqFdVi5UlytJe/3MAALBQ6T4fUUevVFYpqx19HZoDAICFSvf5qDp6jbJWWefo69Dcx3q3500AADDoSvf5evXlBmWjssnRnaG5j/Vuz5sAAGDQle7zHerLncouZbejO0NzH+vdPuVNAACALijd5wfVl4eUw8oRR3eG5j7Wu33KmwAAAF1Qus/H1ZcTyinltKM7Q3Mf690+5U0AAIAuKN3nk+rLKeWSctnRnaG5j/Vun/ImAABAF5Tu8xvqyxllVrnp6M7Q3Md6t095EwAAoAtK9/mc+vK+8kB56OjO0NzHerdPeRMAAKALSvf5c/XlC+Wl8srRnaG5j/Vun/ImAABAF5Tu89fqyzfKvPLW0Z2huY/1bp/yJgAAQBeU7vN36sv3ygflo6M7Q3Mf690+5U2gFrtPx94dACCXus9HG8nZ55/UY5+VL8pXR6eF5j7Wu33Km0Atdp+OvTsAQC6blS3KVmWbsl3pOeI755q1+ak/+KX8Vv44Oi0097He7VPeBGqx+3Ts3QEActmj7FX2KfuVA4Zzsd/IzXq3T3kTqMXu07F3BwDI5ahyTDmunFDGDOdiv5Gb9W6f8iZQi92nY+8OAJDLGeWsck45r1wwnIv9xrCK3adL3bsDAKDNFeWqck25rkwbzsV+Y1jF7tOl7t0BANDmlnJbuaPcVe4ZzsV+Y1jF7tOl7t0BANDmkfJYeaI8VZ4ZzsV+Y1jF7tOl7t0BAP4fy5TlHcicIxON//VkxHy8QJq/26/YfbrUvTsAAEqbdGSqceZin/Ncaf4uAAD4hz4HAGDwtfXmN+W78qNy97lvTp8DAAbZXzdFRVE=
+   eJzt1TeOFEEAheHW3AEER+AauAPgJEyEE7sQ4cQuRDgJE+GkBSLMSpgLYC6AuQAmAhLMIXiIrGlGTat7oOjvk/6oStWjSV5VDWdVWj1AAMDs2HMAKJ89B4Dy2XMAKJ89B4Dy2XMAKJ89B4Dy2XMAKJ89B4Dy2XMAKJ89B4Dy2XMAKJ89n53tk6rakXamXZO//WsA+J/82PM1tez5MOay4fPpYDpkzwHo0dq0Lq1PG9LGNGlo2r2mM361kD9rMZ1Mp+w5AD3alDanLWlr2tbhXts3xu5CNvxiupQu23MAerQ77Ul70760v8O9tm+M3VI2/Ga6lW7bcwB6dDgdSUfTsXS8w722b4zdg2z4w/QoPbbnAPTodDqTzqZz6XyHe23fGLsn2fCn6Vl6bs8B6NGVdDVdS9fTjQ732r4xdi+y4S/Tq/TangPQozvpbrqX7qflDvfavjF2b7Lhb9O79N6eAzDFirTyH2ipofnabz3Q4nxuBtW/O5TP2fAv6Wv6Zs8BKMBCQ4u1Oyf+8Hyo6t8FAH6y5wBQvt/t5of0MX2qmvd82rk9B6Bk3wET27bW
   </data>
  </layer>
  <objectgroup name="Backlight" visible="0">
@@ -50,8 +50,8 @@
   <object id="4" type="pymunktmx_box" x="368" y="0" width="352" height="224"/>
   <object id="5" type="pymunktmx_box" x="1616" y="144" width="336" height="48"/>
  </objectgroup>
- <objectgroup name="Actors" visible="0">
-  <object id="6" name="hero" type="Hero" x="208" y="256" width="48" height="48"/>
+ <objectgroup name="Actors">
+  <object id="6" name="hero" type="Hero" x="1104" y="240" width="48" height="48"/>
  </objectgroup>
  <objectgroup name="Traps" visible="0">
   <object id="7" type="pymunktmx_box" x="816" y="384" width="48" height="16"/>
@@ -62,8 +62,8 @@
   <object id="10" type="pymunktmx_box" x="0" y="0" width="16" height="400"/>
   <object id="11" type="pymunktmx_box" x="16" y="384" width="160" height="16"/>
  </objectgroup>
- <objectgroup name="Physics" visible="0">
-  <object id="12" name="moving_1" type="pymunktmx_box" x="1472" y="304" width="112" height="16">
+ <objectgroup name="Physics">
+  <object id="12" name="moving_1" type="pymunktmx_box" x="1664" y="288" width="112" height="16">
    <properties>
     <property name="body.static" value="0"/>
    </properties>
@@ -85,6 +85,26 @@
   </object>
   <object id="21" x="1343" y="177" width="213" height="149">
    <ellipse/>
+  </object>
+ </objectgroup>
+ <objectgroup name="Hanging">
+  <properties>
+   <property name="body.static" value="0"/>
+  </properties>
+  <object id="41" type="pymunktmx_box" x="816" y="0" width="64" height="224">
+   <properties>
+    <property name="body.static" value="0"/>
+   </properties>
+  </object>
+  <object id="42" type="pymunktmx_box" x="944" y="0" width="64" height="224">
+   <properties>
+    <property name="body.static" value="0"/>
+   </properties>
+  </object>
+  <object id="44" type="pymunktmx_box" x="1376" y="112" width="64" height="224">
+   <properties>
+    <property name="body.static" value="0"/>
+   </properties>
   </object>
  </objectgroup>
 </map>
