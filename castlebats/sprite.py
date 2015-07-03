@@ -4,16 +4,13 @@ from collections import OrderedDict
 import logging
 
 from pymunk.vec2d import Vec2d
-from PIL import Image, ImageDraw, ImageFilter, ImageChops
-from pygame.image import fromstring as pyim_fromstring
-
-from pygame.transform import rotozoom, rotate, flip, scale
+from pygame.transform import rotozoom, rotate, flip
 import pygame
 import pymunk
 
 from six.moves import zip
 import renderer
-import random
+
 logger = logging.getLogger("castlebats.sprite")
 
 from . import resources
@@ -332,12 +329,7 @@ class ViewPort(pygame.sprite.Sprite):
         camera.center = self.camera_vector
 
         xx, yy = -self.camera_vector + surface_rect.center - surface_rect.topleft
-
-        # TODO: take out fill/clear after debug
-        effects_buffer = self.effects_buffer
-        effects_buffer.fill((0, 0, 0), surface_rect)
-        effects_blit = effects_buffer.blit
-        effects_rect = effects_buffer.get_rect()
+        self.map_layer.offset = xx, yy
 
         to_draw = list()
         if self.draw_sprites:
@@ -359,96 +351,24 @@ class ViewPort(pygame.sprite.Sprite):
                         to_draw_append((sprite.image, new_rect, 1))
 
         if self.draw_map and self.draw_sprites:
-            self.map_layer.draw(effects_buffer, to_draw)
+            self.map_layer.draw(surface, to_draw)
 
         elif self.draw_sprites:
             for s, r, l in to_draw:
-                effects_blit(s, r)
+                surface.blit(s, r)
 
         elif self.draw_map:
-            self.map_layer.draw(effects_buffer)
+            self.map_layer.draw(surface)
 
         if self.draw_overlay:
             overlay = self.overlay_surface
             overlay.set_clip(camera)
             overlay.fill((0, 0, 0))
             # pymunk_draw(overlay, self.parent.space)
-            effects_buffer.blit(overlay, (xx, yy))
-
-        # # lights layer
-        # # draw circles for lights
-        # # blend together
-        dynamic_light_mask_size = (16, 16)
-        dynamic_bloom_mask_size = (256, 128)
-
-        draw_lights = 1
-        if draw_lights:
-            color = (0, 0, 0, 0)
-
-            image = Image.new('RGBA', effects_rect.size, (0, 0, 0, 200))
-            shapes = self.get_dynamic_lights()
-            self.draw_circles(color, image, shapes, (xx, yy))
-            image = image.resize(dynamic_light_mask_size)
-            image = image.filter(ImageFilter.GaussianBlur(4))
-            overlay = pyim_fromstring(image.tobytes(), image.size, image.mode)
-            overlay = scale(overlay, effects_rect.size)
-            effects_blit(overlay, (0, 0))
-
-        # bloom layer
-        # draw circles for lights
-        # cut out screen pixels
-        # blur
-        # paste on screen
-
-        # needs more map things
-        # if self.following:
-        #     backlight_sensor = self.following.rect
-        #     shapes = self.parent.map_data.tmx.get_layer_by_name('Backlight')
-        #     rects = [make_rect(i) for i in shapes]
-        #     draw_backlight = not backlight_sensor.collidelist(rects) == -1
-        #
-        # draw_backlight = 1
-        # if draw_backlight:
-        #     image = Image.new('RGBA', effects_rect.size, (0, 0, 0, 24))
-        #
-        #     color = (255, 239, 153, 128)
-        #
-        #     # # TODO: get easier access to the tmx data?
-        #     shapes = self.parent.map_data.tmx.get_layer_by_name('Backlight')
-        #     self.draw_circles(color, image, shapes, (xx, yy))
-        #
-        #     image = image.resize(dynamic_bloom_mask_size)
-        #     small_buffer = scale(effects_buffer, dynamic_bloom_mask_size)
-        #     pygame_mask = pygame_to_pil_img(small_buffer)
-        #     r, g, b, a = pygame_mask.split()
-        #     inv_a = ImageChops.invert(a)
-        #     image.paste(a, (0, 0), mask=a)
-        #     #image.putalpha(a)
-        #     image = image.filter(ImageFilter.GaussianBlur(2))
-        #
-        #     overlay = pyim_fromstring(image.tobytes(), image.size, image.mode)
-        #     overlay = scale(overlay, effects_rect.size)
-        #     effects_blit(overlay, (0, 0))
-
-        surface.blit(effects_buffer, surface_rect)
+            surface.blit(overlay, (xx, yy))
 
         # TODO: dirty updates
         return self.rect
-
-    def get_dynamic_lights(self):
-        shapes = self.parent.map_data.tmx.get_layer_by_name('Lights')
-        return shapes
-
-    def draw_circles(self, color, image, shapes, offset=(0, 0)):
-        draw = ImageDraw.Draw(image)
-        draw_ellipse = draw.ellipse
-        ox, oy = offset
-        for shape in shapes:
-            x1 = shape.x + ox
-            y1 = shape.y + oy
-            x2 = x1 + shape.width
-            y2 = y1 + shape.height
-            draw_ellipse((x1, y1, x2, y2), color)
 
 
 def make_rect(i):
@@ -479,12 +399,3 @@ def make_feet(rect):
     return body, shape
 
 
-def pygame_to_pil_img(pg_surface):
-    """convert pygame surface to PIL Image"""
-    imgstr = pygame.image.tostring(pg_surface, 'RGBA')
-    return Image.fromstring('RGBA', pg_surface.get_size(), imgstr)
-
-def pil_to_pygame_img(pil_img):
-    """convert PIL Image to pygame surface"""
-    imgstr = pil_img.tostring()
-    return pygame.image.fromstring(imgstr, pil_img.size, 'RGB')

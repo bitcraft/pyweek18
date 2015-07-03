@@ -15,7 +15,7 @@
  <tileset firstgid="1121" name="exterior-parallaxBG2" tilewidth="16" tileheight="16">
   <image source="../images/exterior-parallaxBG2.png" trans="000000" width="400" height="300"/>
  </tileset>
- <layer name="Outdoor Parallax" width="500" height="25">
+ <layer name="Outdoor Parallax" width="500" height="25" visible="0">
   <properties>
    <property name="parallax_offset" value="250, 130"/>
    <property name="parallax_ratio" value="4, 3"/>
@@ -51,7 +51,7 @@
   <object id="5" type="pymunktmx_box" x="1616" y="144" width="336" height="48"/>
  </objectgroup>
  <objectgroup name="Actors">
-  <object id="6" name="hero" type="Hero" x="1104" y="240" width="48" height="48"/>
+  <object id="6" name="hero" type="Hero" x="269" y="251" width="48" height="48"/>
  </objectgroup>
  <objectgroup name="Traps" visible="0">
   <object id="7" type="pymunktmx_box" x="816" y="384" width="48" height="16"/>
