@@ -267,16 +267,9 @@ class ViewPort(pygame.sprite.Sprite):
         logger.info('setting rect')
         self.rect = pygame.Rect(rect)
         md = self.parent.map_data
-        colorkey = (128, 64, 128)
-
         self.map_layer = renderer.BufferedRenderer(md, self.rect.size)
-
         self.map_height = md.height * md.tileheight
         self.center()
-
-        self.effects_buffer = pygame.Surface(rect.size, pygame.SRCALPHA)
-
-        #self.camera_vector = pymunk.Vec2d(rect.center)
 
         if self.draw_overlay:
             md = self.parent.map_data

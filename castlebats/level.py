@@ -36,8 +36,8 @@ class Level(object):
         self.map_data = renderer.TiledMapData(self.tmx_data)
         self.map_height = self.map_data.height * self.map_data.tileheight
 
-        # manually set all objects in the traps layer to trap collision type
         for layer in self.tmx_data.objectgroups:
+            # manually set all objects in the traps layer to trap collision type
             if layer.name == 'Traps':
                 for index, obj in enumerate(layer):
                     obj.name = 'trap_{}'.format(index)
@@ -150,14 +150,14 @@ class Level(object):
         shape.layers = 3
         shape.collision_type = 0
         # shape.body.velocity_func = ignore_gravity
-        # shape.body.mass = 1
-        # shape.body.moment = pymunk.moment_for_box(1, rect.width, rect.height)
+        shape.body.mass = 1
+        shape.body.moment = pymunk.moment_for_box(1, rect.width, rect.height)
 
-        # anchor1 = shape.body.position - (0, 0)
-        # joint = pymunk.PivotJoint(self.space.static_body, shape.body, anchor1,
-        #                           (0, 0))
-        #
-        # self.space.add(joint)
+        anchor1 = shape.body.position - (0, 0)
+        joint = pymunk.PivotJoint(self.space.static_body, shape.body, anchor1,
+                                  (0, 0))
+
+        self.space.add(joint)
 
         s = pygame.Surface((rect.width, rect.height))
         s.fill((255, 255, 255))
@@ -301,5 +301,5 @@ class Level(object):
         for model in self._add_queue:
             self.add_model(model)
 
-        self._remove_queue = set()
-        self._add_queue = set()
+        self._remove_queue.clear()
+        self._add_queue.clear()

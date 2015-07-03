@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<map version="1.0" orientation="orthogonal" renderorder="right-down" width="500" height="25" tilewidth="16" tileheight="16" nextobjectid="45">
+<map version="1.0" orientation="orthogonal" renderorder="right-down" width="500" height="25" tilewidth="16" tileheight="16" nextobjectid="89">
  <tileset firstgid="1" name="twilight-tiles" tilewidth="16" tileheight="16">
   <image source="twilight-tiles.png" width="256" height="256"/>
  </tileset>
@@ -15,75 +15,76 @@
  <tileset firstgid="1121" name="exterior-parallaxBG2" tilewidth="16" tileheight="16">
   <image source="../images/exterior-parallaxBG2.png" trans="000000" width="400" height="300"/>
  </tileset>
- <layer name="Outdoor Parallax" width="500" height="25" visible="0">
+ <layer name="Outdoor Parallax" width="500" height="25">
   <properties>
    <property name="parallax_offset" value="250, 130"/>
    <property name="parallax_ratio" value="4, 3"/>
   </properties>
   <data encoding="base64" compression="zlib">
-   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
+   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
   </data>
  </layer>
  <layer name="Indoor Parallax" width="500" height="25">
   <properties>
-   <property name="parallax_offset" value="400, 80"/>
+   <property name="parallax_offset" value="900, 80"/>
    <property name="parallax_ratio" value="2, 1.5"/>
   </properties>
   <data encoding="base64" compression="zlib">
-   eJzt3ElrFEEYxvHSmwe9e/Ej+GE8eHHNxYsriYkJrhgTBVdcouCKS4y4JOA24hZwBde769317vo0pLFTqamaaQ39jvwf+JHpmbeL7iLwUsVMO2c73dI2BQAAxFgP/RwAgDTroZ8DAJBmPfRzAADSrId+DgBAmvXQzwEASLMe+jkAAGnW06r9fKhFrxsA0Jqsp2w/v1HyPAAAWpH1WFmfs94GAFhmPWX6+TyZLwtkoSySxZGatjo1jWIvAABQNesJ9fPUWnmpLJPlskJWyqoSNQAAtArrKbM+XyvrZL1skI2yqUTNZGDfHgAwGaynTD/fLjtkp+yS3bKnRE0V2LsHAJRhPfX6ebt0yGrplC5ZI91yWI7IUTkmx+WEd36sJjZ2tr4+V+eaAACoivVk/Tzrnz1jitfeK1ukT/plq2yT83JBLsolGZYR775jNaFx87FrbuIaOlQfm/Nm6wEASLGerJ9n/TPUz/fJfjkgA3JQDslNuSW35Y7clVHvvmM1oXHzsUNzGKqPzXmz9QAApFhJx9jfTukqvJ/18x4X7uen5LSckUE5K0PyRJ7KM3kuL+Sld9+xmuC4rv4+e6g+NufN1gMAkGIhm6V37HWf9Bc+K/bzmhvf0y/LFbkq1+S61OSVvJY38lbeyXvvvmM1wXFd/e+qheqLn/vnpeoBAGiWhez1jgcKr/N+PuImrtHvyX15IA/lkTyWD/JRPsln+SJfvfuO1YTGzccOzWGoPjbnjdbz3TsAQKMs5KR3PFh47e+3+3vuId/ku/yQn/Iru8+pzddUKXt+XXFP4G+eXwcA+P9ZyrSE6TJDhp0bxXhV/x8BAKpVVeZ4x3NlZgNmuernDAAAayYrS0rU088BACjnX6Xd/fnNWSz5b9GK9flv1Brp57Nd9XNWFf8ZdwAA5H4D80fRFg==
+   eJzt3EdvE0EYxvGBGwe4c+Ej8GE4cKHmwoWqhIREVBESkKiiBCRKECUEURKJZkSLRJWod+qdeqc+K2x5Mp4d2xvZuwP/R/opa/v1yJLf6NWMbBtDYkyvdEwDAOAvEmeY5wAAG4kzzHMAgI3EGeY5AMBG4gzzHABgI3GGeQ4AsJE4wzwHANhInIl1no9G+roBoOhInMk6z29mfB4AoNhInCnK/pz9NgAUA4kzWeb5Alkoi2SxLJGlgZqOlJpGcRYAAO1D4oxvntfbKy+XFbJSVslqWZOhBgBQPCTOZNmfr5cNslE2yWbZkqGmFTi3B4CpIXEmyzzfKbtkt+yRvbIvQ00eOLsHgDASZ9Lmead0yVrplh5ZJ71yVI7JcTkhw3LSeX6oJrR2sr8+n/KaAACtR+JMMs+T+dlXZr+n/bJNBmRQtssOuSAX5ZJcljEZd/ohVONbt7J2ydTuoX31oV5sth4AUEXiTDLPk/npm+cH5KAckiE5LEfkltyWO3JX7smE0w+hGt+6lbV9veWrD/Vis/UAgCpS7HSV/3ZLj3V/Ms/7jH+en5YzclZG5JyMylN5Js/lhbyUV04/hGq865r0c3ZffagXm60HAFSR4mar9JevB2TQesye5yUzeaZfkatyTa7LDSnJa3kjb+WdvJcPTj+EarzrmvTPqvnq7cfd59WrBwCkI8XNfuf2kHVdmefjpnaPfl8eyEN5JI/liXyUT/JZvshX+eb0Q6jGt25lbV9v+epDvdhoPZ+9A4BapLg55dwesa7d83b3zN3nu/yQn/JLfifv//Tma/KU/H6dfSYwld+vA4B/CSl+ZtQxU2bJmDETmCzv/y8AaBdSrMxzbs+X2Q2YY/LvJQBAfkh7syxDPfMcAFAPaW06TfU7Z6FUvotm11e+o9bIPJ9r8u+lvLi/cQcA/6M/5kwzDA==
   </data>
  </layer>
  <layer name="Tile Layer 2" width="500" height="25">
   <data encoding="base64" compression="zlib">
-   eJzt1TeOFEEAheHW3AEER+AauAPgJEyEE7sQ4cQuRDgJE+GkBSLMSpgLYC6AuQAmAhLMIXiIrGlGTat7oOjvk/6oStWjSV5VDWdVWj1AAMDs2HMAKJ89B4Dy2XMAKJ89B4Dy2XMAKJ89B4Dy2XMAKJ89B4Dy2XMAKJ89B4Dy2XMAKJ89n53tk6rakXamXZO//WsA+J/82PM1tez5MOay4fPpYDpkzwHo0dq0Lq1PG9LGNGlo2r2mM361kD9rMZ1Mp+w5AD3alDanLWlr2tbhXts3xu5CNvxiupQu23MAerQ77Ul70760v8O9tm+M3VI2/Ga6lW7bcwB6dDgdSUfTsXS8w722b4zdg2z4w/QoPbbnAPTodDqTzqZz6XyHe23fGLsn2fCn6Vl6bs8B6NGVdDVdS9fTjQ732r4xdi+y4S/Tq/TangPQozvpbrqX7qflDvfavjF2b7Lhb9O79N6eAzDFirTyH2ipofnabz3Q4nxuBtW/O5TP2fAv6Wv6Zs8BKMBCQ4u1Oyf+8Hyo6t8FAH6y5wBQvt/t5of0MX2qmvd82rk9B6Bk3wET27bW
+   eJzt1UlOFWEYheHKXYTRJbgNFRdgl6iMsImgI7sAMsImsRnZJagju8RmAzYbENiA4Eic2CzCYxx5LU1RqQv5qedJ3lF9+S9hcqpqdLanHdqwAGAU7Lk9B6B89tyeA1A+e27PASifPbfnAJTPnttzAMpnz+05AOWz5/YcgPLZc3sOQPnsuT0HoHz23J4DUD57bs8BKJ89t+eb7fCgqo6ko2l8sNl/DUCZfu35zqGa7JI7e96VyWz4VDqdzthzgFZ2pd1pTxpLe9OgJnfrv6v7xt9m8s+aTZfSnD0HaGVf2p8OpIPpkLvO7pq+0XfXs+E30s10y54DtDKRjqXj6UQ66a6zu6Zv9N1CNvxBepge2XOAVs6mc+l8upAuuuvsrukbffciG/4yvUqv7TlAK/PpcrqSrqZr7jq7a/pG373Jhr9N79J7ew7Qyu10J91N99J9d53dNX2j7z5kwxfTUlq25wCtPE5P0tP0LD1319ld0zf67mM2fCWtpk/2HNjCtmnLtFDTVPWnUw2+T25Aw787Kl+z4d/S9/TDngNQgJmaZoduptf5fVQN/y4A8Js9B4Dy/Ws3P6e19KWq3/P/fbfnAGX4Cav/jUo=
   </data>
  </layer>
- <objectgroup name="Backlight" visible="0">
-  <object id="22" x="-199" y="-91" width="834" height="761">
+ <objectgroup name="Backlight">
+  <object id="83" x="-272" y="48" width="2976" height="512">
    <ellipse/>
   </object>
  </objectgroup>
- <objectgroup name="Walls" visible="0">
-  <object id="1" type="pymunktmx_box" x="176" y="336" width="640" height="64"/>
-  <object id="2" type="pymunktmx_box" x="864" y="336" width="80" height="64"/>
-  <object id="3" type="pymunktmx_box" x="992" y="336" width="432" height="64"/>
-  <object id="4" type="pymunktmx_box" x="368" y="0" width="352" height="224"/>
-  <object id="5" type="pymunktmx_box" x="1616" y="144" width="336" height="48"/>
+ <objectgroup name="Walls">
+  <object id="61" type="pymunktmx_box" x="0" y="336" width="1680" height="16"/>
+  <object id="62" type="pymunktmx_box" x="2112" y="336" width="432" height="64"/>
+  <object id="63" type="pymunktmx_box" x="368" y="0" width="1472" height="224"/>
+  <object id="65" type="pymunktmx_box" x="1984" y="336" width="80" height="64"/>
+  <object id="66" type="pymunktmx_box" x="1680" y="336" width="256" height="64"/>
+  <object id="82" type="pymunktmx_box" x="16" y="0" width="16" height="336"/>
  </objectgroup>
  <objectgroup name="Actors">
-  <object id="6" name="hero" type="Hero" x="269" y="251" width="48" height="48"/>
+  <object id="67" name="hero" type="Hero" x="96" y="240" width="48" height="48"/>
  </objectgroup>
- <objectgroup name="Traps" visible="0">
-  <object id="7" type="pymunktmx_box" x="816" y="384" width="48" height="16"/>
-  <object id="8" type="pymunktmx_box" x="944" y="384" width="48" height="16"/>
+ <objectgroup name="Traps">
+  <object id="68" type="pymunktmx_box" x="1936" y="384" width="48" height="48"/>
+  <object id="69" type="pymunktmx_box" x="2064" y="384" width="48" height="48"/>
  </objectgroup>
- <objectgroup name="Boundaries" visible="0">
-  <object id="9" type="pymunktmx_box" x="1424" y="384" width="880" height="16"/>
-  <object id="10" type="pymunktmx_box" x="0" y="0" width="16" height="400"/>
-  <object id="11" type="pymunktmx_box" x="16" y="384" width="160" height="16"/>
+ <objectgroup name="Boundaries">
+  <object id="70" type="pymunktmx_box" x="2544" y="384" width="880" height="16"/>
+  <object id="71" type="pymunktmx_box" x="0" y="0" width="16" height="400"/>
+  <object id="72" type="pymunktmx_box" x="16" y="384" width="1664" height="64"/>
  </objectgroup>
  <objectgroup name="Physics">
-  <object id="12" name="moving_1" type="pymunktmx_box" x="1664" y="288" width="112" height="16">
+  <object id="73" name="moving_1" type="pymunktmx_box" x="2768" y="304" width="112" height="16">
    <properties>
     <property name="body.static" value="0"/>
    </properties>
   </object>
  </objectgroup>
  <objectgroup name="Stairs" visible="0"/>
- <objectgroup name="Lights" visible="0">
-  <object id="13" x="736" y="168" width="221" height="168">
+ <objectgroup name="Lights">
+  <object id="84" x="1856" y="168" width="221" height="168">
    <ellipse/>
   </object>
-  <object id="18" x="-181" y="-137" width="560" height="560">
+  <object id="85" x="-320" y="-48" width="1552" height="576">
    <ellipse/>
   </object>
-  <object id="19" x="881" y="185" width="238" height="151">
+  <object id="86" x="2001" y="185" width="238" height="151">
    <ellipse/>
   </object>
-  <object id="20" x="1120" y="163" width="208" height="164">
+  <object id="87" x="2240" y="163" width="208" height="164">
    <ellipse/>
   </object>
-  <object id="21" x="1343" y="177" width="213" height="149">
+  <object id="88" x="2463" y="177" width="213" height="149">
    <ellipse/>
   </object>
  </objectgroup>
@@ -91,20 +92,5 @@
   <properties>
    <property name="body.static" value="0"/>
   </properties>
-  <object id="41" type="pymunktmx_box" x="816" y="0" width="64" height="224">
-   <properties>
-    <property name="body.static" value="0"/>
-   </properties>
-  </object>
-  <object id="42" type="pymunktmx_box" x="944" y="0" width="64" height="224">
-   <properties>
-    <property name="body.static" value="0"/>
-   </properties>
-  </object>
-  <object id="44" type="pymunktmx_box" x="1376" y="112" width="64" height="224">
-   <properties>
-    <property name="body.static" value="0"/>
-   </properties>
-  </object>
  </objectgroup>
 </map>
