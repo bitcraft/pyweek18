@@ -24,6 +24,10 @@ class TiledMapData(object):
         return self.tmx.tileheight
 
     @property
+    def tile_size(self):
+        return self.tmx.tilewidth, self.tmx.tileheight
+
+    @property
     def width(self):
         return self.tmx.width
 
@@ -53,7 +57,7 @@ class TiledMapData(object):
 
     def get_tile_images_by_range(self, x_start, x_stop, y_start, y_stop,
                                  layer_range):
-        """
+        """ Not like python 'Range': will include the end index!
 
         :param x_start: Start x (column) index
         :param x_stop: Stop x (column) index
@@ -62,18 +66,17 @@ class TiledMapData(object):
         :param layer_range:
         :return:
         """
-        def trunk(i):
-            return 0 if i < 0 else i
+        def do_rev(seq, start, stop):
+            if start < stop:
+                return enumerate(seq[start:stop], start)
+            else:
+                return enumerate(seq[stop:start], stop)
 
-        x_start = trunk(x_start)
-        y_start = trunk(y_start)
-        y_step = 1 if y_start <= y_stop else -1
-        x_step = 1 if x_start <= x_stop else -1
         images = self.tmx.images
         for layer_no in layer_range:
             data = self.tmx.layers[layer_no].data
-            for y, row in enumerate(data[y_start:y_stop:y_step], y_start):
-                for x, gid in enumerate(row[x_start:x_stop:x_step], x_start):
+            for y, row in do_rev(data, y_start, y_stop):
+                for x, gid in do_rev(row, x_start, x_stop):
                     if gid:
                         yield x, y, layer_no, images[gid]
                     else:

@@ -38,7 +38,7 @@
    eJzt1UlOFWEYheHKXYTRJbgNFRdgl6iMsImgI7sAMsImsRnZJagju8RmAzYbENiA4Eic2CzCYxx5LU1RqQv5qedJ3lF9+S9hcqpqdLanHdqwAGAU7Lk9B6B89tyeA1A+e27PASifPbfnAJTPnttzAMpnz+05AOWz5/YcgPLZc3sOQPnsuT0HoHz23J4DUD57bs8BKJ89t+eb7fCgqo6ko2l8sNl/DUCZfu35zqGa7JI7e96VyWz4VDqdzthzgFZ2pd1pTxpLe9OgJnfrv6v7xt9m8s+aTZfSnD0HaGVf2p8OpIPpkLvO7pq+0XfXs+E30s10y54DtDKRjqXj6UQ66a6zu6Zv9N1CNvxBepge2XOAVs6mc+l8upAuuuvsrukbffciG/4yvUqv7TlAK/PpcrqSrqZr7jq7a/pG373Jhr9N79J7ew7Qyu10J91N99J9d53dNX2j7z5kwxfTUlq25wCtPE5P0tP0LD1319ld0zf67mM2fCWtpk/2HNjCtmnLtFDTVPWnUw2+T25Aw787Kl+z4d/S9/TDngNQgJmaZoduptf5fVQN/y4A8Js9B4Dy/Ws3P6e19KWq3/P/fbfnAGX4Cav/jUo=
   </data>
  </layer>
- <objectgroup name="Backlight">
+ <objectgroup name="Backlight" visible="0">
   <object id="83" x="-272" y="48" width="2976" height="512">
    <ellipse/>
   </object>
@@ -52,18 +52,18 @@
   <object id="82" type="pymunktmx_box" x="16" y="0" width="16" height="336"/>
  </objectgroup>
  <objectgroup name="Actors">
-  <object id="67" name="hero" type="Hero" x="96" y="240" width="48" height="48"/>
+  <object id="67" name="hero" type="Hero" x="944" y="256" width="48" height="48"/>
  </objectgroup>
- <objectgroup name="Traps">
+ <objectgroup name="Traps" visible="0">
   <object id="68" type="pymunktmx_box" x="1936" y="384" width="48" height="48"/>
   <object id="69" type="pymunktmx_box" x="2064" y="384" width="48" height="48"/>
  </objectgroup>
- <objectgroup name="Boundaries">
+ <objectgroup name="Boundaries" visible="0">
   <object id="70" type="pymunktmx_box" x="2544" y="384" width="880" height="16"/>
   <object id="71" type="pymunktmx_box" x="0" y="0" width="16" height="400"/>
   <object id="72" type="pymunktmx_box" x="16" y="384" width="1664" height="64"/>
  </objectgroup>
- <objectgroup name="Physics">
+ <objectgroup name="Physics" visible="0">
   <object id="73" name="moving_1" type="pymunktmx_box" x="2768" y="304" width="112" height="16">
    <properties>
     <property name="body.static" value="0"/>
@@ -71,7 +71,7 @@
   </object>
  </objectgroup>
  <objectgroup name="Stairs" visible="0"/>
- <objectgroup name="Lights">
+ <objectgroup name="Lights" visible="0">
   <object id="84" x="1856" y="168" width="221" height="168">
    <ellipse/>
   </object>
@@ -88,7 +88,7 @@
    <ellipse/>
   </object>
  </objectgroup>
- <objectgroup name="Hanging">
+ <objectgroup name="Hanging" visible="0">
   <properties>
    <property name="body.static" value="0"/>
   </properties>

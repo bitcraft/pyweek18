@@ -1,14 +1,16 @@
-from PIL import Image
 import pygame
 import math
-from itertools import product, chain
-from six.moves import queue, range
-from . import quadtree
+from itertools import chain
 from pygame import surfarray
 from pygame.transform import scale, smoothscale
 from pygame.image import fromstring as pg_fromstring
-from PIL import Image, ImageFilter, ImageChops
+from PIL import Image, ImageFilter
 from functools import partial
+
+
+import logging
+logger = logging.getLogger('renderer')
+
 
 
 class BufferedRenderer(object):
@@ -24,19 +26,16 @@ class BufferedRenderer(object):
             r.center(coords)
 
     def draw(self, surface, surfaces=None):
-        self.staging_buffer.fill((0, 0, 0, 0))
-        self.under_surface.fill((0, 0, 0, 0))
+        self.staging_buffer.fill((0, 0, 0, 255))
 
         for index, r in enumerate(self.renderers):
-            if index == 0:
-                r.draw(self.under_surface, surfaces)
-            else:
-                r.draw(self.staging_buffer, surfaces)
+            r.draw(self.staging_buffer, surfaces)
 
         # creates cool 'night time effect' with back lighting
         # surface.blit(self.under_surface, (0, 0), None, pygame.BLEND_RGB_MULT)
+        # surface.blit(self.under_surface, (0, 0), None, pygame.BLEND_RGB_SUB)
 
-        surface.blit(self.under_surface, (0, 0), None, pygame.BLEND_RGB_SUB)
+        # surface.blit(self.under_surface, (0, 0))
         surface.blit(self.staging_buffer, (0, 0))
 
     def create_layer_renderers(self):
@@ -54,7 +53,7 @@ class BuffereredTileLayer(object):
     def __init__(self, data, size, layers):
         self.data = data
         self.layers = layers
-        self.padding = 4
+        self.padding = 1
         self.view = None
         self.buffer = None
         self.xoffset = None
@@ -62,18 +61,18 @@ class BuffereredTileLayer(object):
         self.half_width = None
         self.half_height = None
         self.parent = None
+        self.queue = None
+        self.clear_color = 0, 0, 0, 0
 
         self.set_size(size)
-        self.queue = iter([])
 
     def set_size(self, size):
-        """ Set the size of the map in pixels
+        """ Set the size of the map view in pixels
         """
-        tw = self.data.tilewidth
-        th = self.data.tileheight
+        tw, th = self.data.tile_size
 
-        buffer_width = math.ceil(size[0] / tw) + self.padding
-        buffer_height = math.ceil(size[1] / th) + self.padding
+        buffer_width = math.ceil(size[0] / tw) + 2
+        buffer_height = math.ceil(size[1] / th) + 2
 
         self.view = pygame.Rect(0, 0, buffer_width, buffer_height)
         self.buffer = pygame.Surface((buffer_width * tw, buffer_height * th),
@@ -81,16 +80,6 @@ class BuffereredTileLayer(object):
 
         self.half_width = self.buffer.get_width() / 2
         self.half_height = self.buffer.get_height() / 2
-
-        # quadtree is used to correctly draw tiles that cover 'sprites'
-        make_rect = lambda x, y: pygame.Rect((x * tw, y * th), (tw, th))
-
-        rects = [make_rect(x, y)
-                 for x, y in product(range(self.view.width),
-                                     range(self.view.height))]
-
-        # TODO: figure out what depth -actually- does
-        self.layer_quadtree = quadtree.FastQuadTree(rects, 4)
 
         self.xoffset = 0
         self.yoffset = 0
@@ -113,69 +102,64 @@ class BuffereredTileLayer(object):
                 if py != 0:
                     y = y / py + oy
 
-        tw = self.data.tilewidth
-        th = self.data.tileheight
+        tw, th = self.data.tile_size
 
         # calc the new postion in tiles and offset
         left, self.xoffset = divmod(x - self.half_width, tw)
         top, self.yoffset = divmod(y - self.half_height, th)
 
         # determine if tiles should be redrawn
+        # int is req'd b/c of Surface.scroll(...)
         dx = int(left - self.view.left)
         dy = int(top - self.view.top)
 
-        half_padding = int(self.padding / 2)
-        self.xoffset += half_padding * tw
-        self.yoffset += half_padding * th
-
         # adjust the view if the view has changed without a redraw
-        if not dx == dy == 0:
-            self.view = self.view.move((dx, dy))
-            # self.buffer.scroll(-dx * tw, -dy * th)
-            # self.update_queue(self.get_edge_tiles((dx, dy)))
-            # self.flush()
+        view_change = max(abs(dx), abs(dy))
+        if view_change == 1:
+            self.buffer.scroll(-dx * tw, -dy * th)
+            self.view.move_ip((dx, dy))
+            self.draw_edge_tiles((dx, dy))
+
+        elif view_change > 1:
+            logger.info('scrolling too quickly.  redraw forced')
+            self.view.move_ip((dx, dy))
             self.redraw_tiles()
 
         self._center = x, y
 
-    def get_edge_tiles(self, offset):
+    def draw_edge_tiles(self, offset):
         """ Get the tile coordinates that need to be redrawn
         """
         x, y = map(int, offset)
-        layers = self.layers
-        view = self.view
-        getter = self.data.get_tile_images_by_range
-        queue = None
+        self.queue = iter([])
+        v = self.view
+        fill = partial(self.buffer.fill, self.clear_color)
+        bw, bh = self.buffer.get_size()
+        tw, th = self.data.tile_size
 
-        # right side
-        if x > 0:
-            queue = getter(view.right - x, view.right,
-                           view.top, view.bottom, layers)
+        def append(*args):
+            self.queue = chain(self.queue, self.data.get_tile_images_by_range(*args))
 
-        # left side
-        elif x < 0:
-            queue = getter(view.left - x, view.left,
-                           view.top, view.bottom, layers)
+        # good
+        if x > 0:    # right side
+            d = x * tw
+            append(v.right - x, v.right, v.top, v.bottom, self.layers)
+            fill((bw - d, 0, d, bh))
 
-        # bottom side
-        if y > 0:
-            p = getter(view.left, view.right,
-                       view.bottom - y, view.bottom, layers)
-            if queue is None:
-                queue = p
-            else:
-                queue = chain(p, queue)
+        elif x < 0:  # left side
+            append(v.left - x, v.left, v.top, v.bottom, self.layers)
+            fill((0, 0, -x * tw, bh))
 
-        # top side
-        elif y < 0:
-            p = getter(view.left, view.right,
-                       view.top, view.top - y, layers)
-            if queue is None:
-                queue = p
-            else:
-                queue = chain(p, queue)
+        if y > 0:    # bottom side
+            d = y * th
+            append(v.left, v.right, v.bottom - y, v.bottom, self.layers)
+            fill((0, bh - d, bw, d))
 
-        return queue
+        elif y < 0:  # top side
+            append(v.left, v.right, v.top, v.top - y, self.layers)
+            fill((0, 0, bw, y * th))
+
+        self.flush()
 
     def draw(self, surface, surfaces=None):
         """ Draw the layer onto a surface
@@ -185,74 +169,45 @@ class BuffereredTileLayer(object):
         if surfaces is not None:
             self.draw_surfaces(surface, surfaces)
 
-        backlight_sensor = pygame.Rect(0, 0, 10, 10)
-        backlight_sensor.center = self._center
-        shapes = self.parent.data.tmx.get_layer_by_name('Backlight')
-        rects = [self.shape_to_local_rect(i) for i in shapes]
-        draw_backlight = not backlight_sensor.collidelist(rects) == -1
-
-        if draw_backlight and self.layers == [2]:
-            self.draw_backlight(surface)
-
-        draw_lights = self.layers == [2]
-        if draw_lights:
-            self.draw_lights(surface)
+        # backlight_sensor = pygame.Rect(0, 0, 10, 10)
+        # backlight_sensor.center = self._center
+        # shapes = self.parent.data.tmx.get_layer_by_name('Backlight')
+        # rects = [self.shape_to_local_rect(i) for i in shapes]
+        # draw_backlight = not backlight_sensor.collidelist(rects) == -1
+        #
+        # if draw_backlight and self.layers == [2]:
+        #     self.draw_backlight(surface)
+        #
+        # draw_lights = self.layers == [2]
+        # if draw_lights:
+        #     self.draw_lights(surface)
 
     def blit_surface_with_offset(self, source, destination):
         destination.blit(source, (-self.xoffset, -self.yoffset))
 
     def draw_surfaces(self, surface, surfaces):
-        def above(x, y):
-            return x > y
-
-        surblit = surface.blit
-        # ox, oy = self.xoffset, self.yoffset
-        # left, top = self.view.topleft
-        # hit = self.layer_quadtree.hit
-        # get_tile = self.data.get_tile_image
         layer = self.layers[0]
-        dirty = [(surblit(i[0], i[1]), i[2]) for i in surfaces if i[2] == layer]
-
-        # automatic overdraw
-        # for dirty_rect, layer in dirty:
-        #     for r in hit(dirty_rect.move(ox, oy)):
-        #         x, y, tw, th = r
-        #         for l in [i for i in tile_layers if above(i, layer)]:
-        #             tile = get_tile((int(x / tw + left),
-        #                              int(y / th + top), int(l)))
-        #             if tile:
-        #                 surblit(tile, (x - ox, y - oy))
+        dirty = [surface.blit(i[0], i[1]) for i in surfaces if i[2] == layer]
+        return dirty
 
     def flush(self):
         """ Blit the tiles and block until the tile queue is empty
         """
-        self.blit_tiles(self.queue)
-
-    def blit_tiles(self, iterator):
-        """ Bilts (x, y, layer) tuples to buffer from iterator
-        """
-        tw = self.data.tilewidth
-        th = self.data.tileheight
+        tw, th = self.data.tile_size
         ltw = self.view.left * tw
         tth = self.view.top * th
         blit = self.buffer.blit
-        fill = self.buffer.fill
-        clear_color = (0, 0, 0, 0)
 
-        for x, y, l, tile in iterator:
-            area = (x * tw - ltw, y * th - tth, tw, th)
-            if l == 0 and tile:
-                fill(clear_color, area)
-                blit(tile, area)
-
-            elif tile:
+        for x, y, l, tile in self.queue:
+            if tile:
+                area = x * tw - ltw, y * th - tth, tw, th
                 blit(tile, area)
 
     def redraw_tiles(self):
         """ redraw the visible portion of the buffer -- it is slow.
         """
-        # TODO: remove fill after debug
-        self.buffer.fill((0, 0, 0, 0))
+        print 'redraw'
+        self.buffer.fill(self.clear_color)
         self.queue = self.data.get_tile_images_by_range(
             self.view.left, self.view.right,
             self.view.top, self.view.bottom,
