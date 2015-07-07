@@ -52,7 +52,7 @@
   <object id="82" type="pymunktmx_box" x="16" y="0" width="16" height="336"/>
  </objectgroup>
  <objectgroup name="Actors">
-  <object id="67" name="hero" type="Hero" x="944" y="256" width="48" height="48"/>
+  <object id="67" name="hero" type="Hero" x="2000" y="272" width="48" height="48"/>
  </objectgroup>
  <objectgroup name="Traps" visible="0">
   <object id="68" type="pymunktmx_box" x="1936" y="384" width="48" height="48"/>
@@ -71,14 +71,14 @@
   </object>
  </objectgroup>
  <objectgroup name="Stairs" visible="0"/>
- <objectgroup name="Lights" visible="0">
-  <object id="84" x="1856" y="168" width="221" height="168">
+ <objectgroup name="Lights">
+  <object id="84" x="1760" y="128" width="384" height="256">
    <ellipse/>
   </object>
   <object id="85" x="-320" y="-48" width="1552" height="576">
    <ellipse/>
   </object>
-  <object id="86" x="2001" y="185" width="238" height="151">
+  <object id="86" x="1952" y="128" width="352" height="256">
    <ellipse/>
   </object>
   <object id="87" x="2240" y="163" width="208" height="164">

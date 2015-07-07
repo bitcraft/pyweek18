@@ -79,8 +79,7 @@ class TiledMapData(object):
                 for x, gid in do_rev(row, x_start, x_stop):
                     if gid:
                         yield x, y, layer_no, images[gid]
-                    else:
-                        yield x, y, layer_no, None
+
 
 class LegacyTiledMapData(TiledMapData):
     """ For PyTMX 2.x series
