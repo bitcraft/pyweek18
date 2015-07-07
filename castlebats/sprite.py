@@ -321,8 +321,7 @@ class ViewPort(pygame.sprite.Sprite):
         camera = self.rect.copy()
         camera.center = self.camera_vector
 
-        xx, yy = -self.camera_vector + surface_rect.center - surface_rect.topleft
-        self.map_layer.offset = xx, yy
+        xx, yy = -self.camera_vector + surface_rect.center - surface_rect.topleft + (0, 10)
 
         to_draw = list()
         if self.draw_sprites:
@@ -336,8 +335,8 @@ class ViewPort(pygame.sprite.Sprite):
                     new_rect = sprite.rect.copy()
                     new_rect.y = map_height - new_rect.y - new_rect.height
 
-                    if sprite.axis:
-                        new_rect.move_ip(*sprite.axis)
+                    # if sprite.axis:
+                    #     new_rect.move_ip(*sprite.axis)
 
                     if camera_collide(new_rect):
                         new_rect = new_rect.move(xx, yy)

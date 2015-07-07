@@ -1,16 +1,22 @@
-import pygame
 import math
 from itertools import chain
+from functools import partial
+import logging
+
+import pygame
+import pygame.gfxdraw
 from pygame import surfarray
 from pygame.transform import scale, smoothscale
 from pygame.image import fromstring as pg_fromstring
 from PIL import Image, ImageFilter
-from functools import partial
 
-
-import logging
 logger = logging.getLogger('renderer')
 
+
+def pygame_to_pil_img(pg_surface):
+    """convert pygame surface to PIL Image"""
+    imgstr = pygame.image.tostring(pg_surface, 'RGBA')
+    return Image.fromstring('RGBA', pg_surface.get_size(), imgstr)
 
 
 class BufferedRenderer(object):
@@ -26,8 +32,6 @@ class BufferedRenderer(object):
             r.center(coords)
 
     def draw(self, surface, surfaces=None):
-        self.staging_buffer.fill((0, 0, 0, 255))
-
         for index, r in enumerate(self.renderers):
             r.draw(self.staging_buffer, surfaces)
 
@@ -35,8 +39,8 @@ class BufferedRenderer(object):
         # surface.blit(self.under_surface, (0, 0), None, pygame.BLEND_RGB_MULT)
         # surface.blit(self.under_surface, (0, 0), None, pygame.BLEND_RGB_SUB)
 
-        # surface.blit(self.under_surface, (0, 0))
-        surface.blit(self.staging_buffer, (0, 0))
+        surface.blit(self.under_surface, (0, 64))
+        surface.blit(self.staging_buffer, (0, 64))
 
     def create_layer_renderers(self):
         for layer in self.data.visible_tile_layers:
@@ -50,6 +54,7 @@ class BuffereredTileLayer(object):
     Base class to render a map onto a buffer that is suitable for blitting onto
     the screen as one surface, rather than a collection of tiles.
     """
+
     def __init__(self, data, size, layers):
         self.data = data
         self.layers = layers
@@ -75,8 +80,7 @@ class BuffereredTileLayer(object):
         buffer_height = math.ceil(size[1] / th) + 2
 
         self.view = pygame.Rect(0, 0, buffer_width, buffer_height)
-        self.buffer = pygame.Surface((buffer_width * tw, buffer_height * th),
-                                     pygame.SRCALPHA)
+        self.buffer = pygame.Surface((buffer_width * tw, buffer_height * th), pygame.SRCALPHA)
 
         self.half_width = self.buffer.get_width() / 2
         self.half_height = self.buffer.get_height() / 2
@@ -104,7 +108,7 @@ class BuffereredTileLayer(object):
 
         tw, th = self.data.tile_size
 
-        # calc the new postion in tiles and offset
+        # calc the new position in tiles and offset
         left, self.xoffset = divmod(x - self.half_width, tw)
         top, self.yoffset = divmod(y - self.half_height, th)
 
@@ -140,7 +144,6 @@ class BuffereredTileLayer(object):
         def append(*args):
             self.queue = chain(self.queue, self.data.get_tile_images_by_range(*args))
 
-        # good
         if x > 0:    # right side
             d = x * tw
             append(v.right - x, v.right, v.top, v.bottom, self.layers)
@@ -164,26 +167,26 @@ class BuffereredTileLayer(object):
     def draw(self, surface, surfaces=None):
         """ Draw the layer onto a surface
         """
-        self.blit_surface_with_offset(self.buffer, surface)
+        self.draw_tile_layer(surface)
 
         if surfaces is not None:
             self.draw_surfaces(surface, surfaces)
 
-        # backlight_sensor = pygame.Rect(0, 0, 10, 10)
-        # backlight_sensor.center = self._center
-        # shapes = self.parent.data.tmx.get_layer_by_name('Backlight')
-        # rects = [self.shape_to_local_rect(i) for i in shapes]
-        # draw_backlight = not backlight_sensor.collidelist(rects) == -1
-        #
-        # if draw_backlight and self.layers == [2]:
-        #     self.draw_backlight(surface)
-        #
-        # draw_lights = self.layers == [2]
-        # if draw_lights:
-        #     self.draw_lights(surface)
+            backlight_sensor = pygame.Rect(0, 0, 10, 10)
+            backlight_sensor.center = self._center
+            shapes = self.parent.data.tmx.get_layer_by_name('Backlight')
+            rects = [self.shape_to_local_rect(i) for i in shapes]
+            draw_backlight = not backlight_sensor.collidelist(rects) == -1
 
-    def blit_surface_with_offset(self, source, destination):
-        destination.blit(source, (-self.xoffset, -self.yoffset))
+            if draw_backlight and self.layers == [2]:
+                self.draw_backlight(surface, surfaces)
+
+            draw_lights = self.layers == [2]
+            if draw_lights:
+                self.draw_lights(surface)
+
+    def draw_tile_layer(self, surface):
+        surface.blit(self.buffer, (-self.xoffset, -self.yoffset))
 
     def draw_surfaces(self, surface, surfaces):
         layer = self.layers[0]
@@ -206,7 +209,6 @@ class BuffereredTileLayer(object):
     def redraw_tiles(self):
         """ redraw the visible portion of the buffer -- it is slow.
         """
-        print 'redraw'
         self.buffer.fill(self.clear_color)
         self.queue = self.data.get_tile_images_by_range(
             self.view.left, self.view.right,
@@ -216,7 +218,7 @@ class BuffereredTileLayer(object):
 
     def draw_lights(self, surface):
         light_color = (0, 0, 0, 0)
-        dark_color = (0, 0, 0, 240)
+        dark_color = (0, 0, 0, 220)
         dynamic_light_mask_size = (16, 16)
 
         overlay_size = surface.get_size()
@@ -234,45 +236,54 @@ class BuffereredTileLayer(object):
 
         surface.blit(overlay, (0, 0))
 
-    def draw_backlight(self, surface):
-        mask = self.parent.staging_buffer
+    def draw_backlight(self, surface, surfaces):
+        mask = pygame.Surface(surface.get_size(), pygame.SRCALPHA)
+
+        for r in self.parent.renderers[1:]:
+            r.draw_tile_layer(mask)
+            r.draw_surfaces(mask, surfaces)
+
+        shapes = self.data.tmx.get_layer_by_name('Backlight')
+        rect = pygame.Rect(self.shape_to_local_rect(shapes[0]))
+
+        x = rect.centerx - self._center[0]
+        alpha = max(min(x / 1500. * 255, 255), 160)
+        mod = max(min(x / 1500., 1.0), 0.7)
+        print alpha, mod
 
         dynamic_bloom_mask_size = (256, 128)
-        light_color = (235, 230, 200, 128)
-        dark_color = (12, 8, 8, 255)
-
-        self.parent.under_surface.fill(light_color)
+        light_color = [int(i) for i in (235 * mod, 230 * mod, 200 * mod, alpha)]
 
         overlay_size = mask.get_size()
         overlay = pygame.Surface(overlay_size, pygame.SRCALPHA)
 
         shapes = self.data.tmx.get_layer_by_name('Backlight')
-        self.draw_circles(dark_color, overlay, shapes)
-        # self.draw_circles(light_color, surface, shapes)
+        self.draw_circles(light_color, surface, shapes)
 
-        # # copy the alpha channel
+        # copy the alpha channel
         alpha = surfarray.pixels_alpha(mask)
         surfarray.pixels_alpha(overlay)[:] = alpha[:]
-        del alpha
+        del alpha  # required so that the mask surface lock is released
 
         bloom_buffer = smoothscale(overlay, dynamic_bloom_mask_size)
         stencil = pygame_to_pil_img(bloom_buffer)
 
-        # dark forground
-        dark = stencil.filter(ImageFilter.GaussianBlur(1))
+        # dark foreground
+        dark = stencil.filter(ImageFilter.GaussianBlur(3))
         temp = pg_fromstring(dark.tobytes(), dark.size, dark.mode)
         dark_overlay = smoothscale(temp, overlay_size, overlay)
 
-        #surface.blit(overlay, (0, 0), None, pygame.BLEND_RGBA_ADD)
+        # surface.blit(overlay, (0, 0), None, pygame.BLEND_RGBA_ADD)
         # surface.blit(light_overlay, (0, 0))
         surface.blit(dark_overlay, (0, 0))
 
     def draw_circles(self, color, image, shapes):
-        draw_ellipse = pygame.draw.ellipse
+        draw_ellipse = pygame.gfxdraw.filled_ellipse
         translate = self.shape_to_local_rect
         for shape in shapes:
             rect = translate(shape)
-            draw_ellipse(image, color, rect)
+            x, y, rx, ry = [int(i) for i in rect]
+            draw_ellipse(image, x, y, rx, ry, color)
 
     def shape_to_local_rect(self, shape):
         ox, oy = self.calc_local_offset()
@@ -285,9 +296,3 @@ class BuffereredTileLayer(object):
     def get_dynamic_lights(self):
         shapes = self.data.tmx.get_layer_by_name('Lights')
         return shapes
-
-
-def pygame_to_pil_img(pg_surface):
-    """convert pygame surface to PIL Image"""
-    imgstr = pygame.image.tostring(pg_surface, 'RGBA')
-    return Image.fromstring('RGBA', pg_surface.get_size(), imgstr)
