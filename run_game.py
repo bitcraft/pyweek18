@@ -12,7 +12,7 @@ logging.basicConfig(
     format="%(name)s:%(filename)s:%(lineno)d:%(levelname)s: %(message)s")
 
 from castlebats import resources
-from castlebats import Game
+from castlebats.game import Game
 import pygame
 
 #import pymunkoptions
@@ -22,10 +22,11 @@ import pygame
 def check_libs():
     import pytmx
     import pymunktmx
+    import pyscroll
     logger.info('pygame version:\t%s', pygame.__version__)
     logger.info('pytmx version:\t%s', pytmx.__version__)
     logger.info('pymunktmx version:\t%s', pymunktmx.__version__)
-    # logger.info('pyscroll version:\t%s', renderer.__version__)
+    logger.info('pyscroll version:\t%s', pyscroll.__version__)
 
     import pymunk
     logger.info('pymunk version:\t%s', pymunk.__version__)

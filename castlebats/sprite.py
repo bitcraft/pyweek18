@@ -1,59 +1,58 @@
-from math import degrees
 import itertools
-from collections import OrderedDict
 import logging
+from collections import OrderedDict
+from math import degrees
 
-from pymunk.vec2d import Vec2d
-from pygame.transform import rotozoom, rotate, flip
 import pygame
 import pymunk
-
-from six.moves import zip
-import renderer
-
-logger = logging.getLogger("castlebats.sprite")
+import pyscroll
+from pygame.transform import rotozoom, rotate, flip
+from pymunk.vec2d import Vec2d
 
 from . import resources
-from . import config
+from castlebats import scheduler
+from castlebats import config
+
+logger = logging.getLogger(__name__)
 
 
-class CastleBatsSprite(pygame.sprite.Sprite):
+class ShapeSprite(pygame.sprite.Sprite):
     """
     sprite tracks one pymunk shape and can draw it to a viewport
-    not quiet dirty sprite compatible
     """
     animations = {}
     loaded = False
 
     def __init__(self, shape):
-        super(CastleBatsSprite, self).__init__()
-        self.shape = shape
-        self.rect = None
-        self.axis = None
-        self.image = None
-        self.flip = False
-        self._old_angle = None
-        self.dirty = False
+        super().__init__()
+        self.shape = shape            # pymunk shape
+        self.rect = None              # for screen updates
+        self.axis = None              # where sprites are positioned
+        self.image = None             # transformed image for drawing
+        self.flip = False             # flip left or right
+        self.dirty = False            # flag if sprite has changed or not
+        self.original_surface = None  # unmodified surface for sprite
         self.state = []
         self.old_state = []
-        self.animation_timer = 0
-        self.original_surface = None
         self.current_animation = []
+        self._old_angle = None        # used to check if object needs to be rotated
 
     def __del__(self):
-        logger.info("garbage collecting %s", self)
+        logger.info('garbage collecting %s' % self)
 
     def kill(self):
         """
         remove all the physics stuff from the space
         """
         space = self.shape.body._space
-        if self.shape.body in space.bodies:
-            space.remove(self.shape.body)
         space.remove(self.shape)
         del self.shape
         del self.original_surface
-        super(CastleBatsSprite, self).kill()
+        del self.state
+        del self.old_state
+        del self.current_animation
+        scheduler.unschedule(self.advance_frame)
+        super().kill()
 
     @classmethod
     def load_animations(cls):
@@ -97,25 +96,9 @@ class CastleBatsSprite(pygame.sprite.Sprite):
             self.dirty = False
         self.rect.center = self.shape.body.position
 
-    def update(self, dt):
-        if self.animation_timer > 0:
-            self.animation_timer -= dt
-            if self.animation_timer <= 0:
-                over = self.animation_timer
-                try:
-                    self.set_frame(next(self.current_animation))
-                    self.animation_timer += over
-                except StopIteration:
-                    try:
-                        # remove the old animation
-                        self.state.pop()
-                        animation = self.state.pop()
-                    except IndexError:
-                        animation = 'idle'
-                    self.change_state(animation)
-
     def set_frame(self, frame):
-        self.animation_timer, frame = frame
+        animation_timer, frame = frame
+        animation_timer /= 1000
         new_surf, axis = frame
         self.axis = pymunk.Vec2d(axis)
         if self.flip:
@@ -124,9 +107,10 @@ class CastleBatsSprite(pygame.sprite.Sprite):
             self.axis.x = -self.axis.x
         self.original_surface = new_surf
         self.dirty = True
+        scheduler.schedule(self.advance_frame, animation_timer)
 
     def set_animation(self, name, func=None):
-        self.animation_timer, animation = self.animations[name]
+        animation_timer, animation = self.animations[name]
 
         logger.info("%s set animation %s", self, name)
 
@@ -136,15 +120,24 @@ class CastleBatsSprite(pygame.sprite.Sprite):
             else:
                 animation = func(animation)
 
-        # on python2 this will cause an infinite loop!
-        # unless the six module is used.  :D
-        self.current_animation = zip(itertools.repeat(self.animation_timer),
-                                     animation)
+        scheduler.unschedule(self.advance_frame)
+        self.current_animation = zip(itertools.repeat(animation_timer), animation)
+        self.advance_frame(None)
 
-        self.set_frame(next(self.current_animation))
+    def advance_frame(self, dt):
+        try:
+            self.set_frame(next(self.current_animation))
+        except StopIteration:
+            try:
+                # remove the old animation
+                self.state.pop()
+                animation = self.state.pop()
+            except IndexError:
+                animation = 'idle'
+            self.change_state(animation)
 
 
-class BoxSprite(CastleBatsSprite):
+class BoxSprite(ShapeSprite):
     """
     im really confused why, but box type object need special translations
     """
@@ -172,7 +165,7 @@ class ViewPortGroup(pygame.sprite.Group):
     """
 
     def __init__(self, space, map_data):
-        super(ViewPortGroup, self).__init__()
+        super().__init__()
         self.space = space
         self.map_data = map_data
         self.viewports = OrderedDict()
@@ -183,35 +176,24 @@ class ViewPortGroup(pygame.sprite.Group):
         self.resize()
 
     def resize(self):
-        logger.info("resizing the viweports")
-        rects = list()
+        logger.info("resizing the viewports")
         if len(self.viewports) == 1:
             x, y, w, h = self.rect
-            rects = [
-                (x, y, w, h),
-            ]
+            rects = [(x, y, w, h)]
 
         elif len(self.viewports) == 2:
             x, y, w, h = self.rect
-            rects = [
-                (x, y, w, h / 2),
-                (x, h / 2 + y, w, h / 2 + y),
-            ]
+            rects = [(x, y, w, h / 2),
+                     (x, h / 2 + y, w, h / 2 + y)]
 
         else:
-            logger.error(
-                "too many viewports in the manager. only 2 are allowed.")
+            logger.error("too many viewports in the manager. only 2 are allowed.")
             raise ValueError
 
         for k in self.viewports.keys():
             rect = pygame.Rect(rects.pop())
             k.set_rect(rect)
             self.viewports[k] = rect
-
-    def update(self, delta):
-        super(ViewPortGroup, self).update(delta)
-        for vp in self.viewports:
-            vp.update(delta)
 
     def draw(self, surface, rect):
         if rect is not self.rect:
@@ -224,7 +206,7 @@ class ViewPortGroup(pygame.sprite.Group):
             if self.rect is not None:
                 self.resize()
         else:
-            super(ViewPortGroup, self).add_internal(sprite)
+            super().add_internal(sprite)
 
     def remove_internal(self, sprite):
         if sprite in self.viewports:
@@ -236,7 +218,7 @@ class ViewPortGroup(pygame.sprite.Group):
             for vp in self.viewports.keys():
                 if vp.following is sprite:
                     vp.follow(None)
-            super(ViewPortGroup, self).remove_internal(sprite)
+            super().remove_internal(sprite)
 
     def clear(self):
         """ will not handle this
@@ -249,7 +231,7 @@ class ViewPort(pygame.sprite.Sprite):
     """
 
     def __init__(self):
-        super(ViewPort, self).__init__()
+        super().__init__()
         self.parent = None           # castlebats.Level
         self.rect = None
         self.camera_vector = None
@@ -265,16 +247,16 @@ class ViewPort(pygame.sprite.Sprite):
 
     def set_rect(self, rect):
         logger.info('setting rect')
-        self.rect = pygame.Rect(rect)
         md = self.parent.map_data
-        self.map_layer = renderer.BufferedRenderer(md, self.rect.size)
-        self.map_height = md.height * md.tileheight
+        self.rect = pygame.Rect(rect)
+        self.map_layer = pyscroll.BufferedRenderer(md, self.rect.size, alpha=True)
+        self.map_height = md.map_size[1] * md.tile_size[1]
         self.center()
 
         if self.draw_overlay:
             md = self.parent.map_data
-            height = md.height * md.tileheight
-            width = md.width * md.width
+            height = md.map_size[1] * md.tile_size[1]
+            width = md.map_size[0] * md.tile_size[0]
             self.overlay_surface = pygame.Surface((width, height))
             self.overlay_surface.set_colorkey((0, 0, 0))
             alpha = config.getint('display', 'physics-overlay-alpha')
@@ -286,7 +268,7 @@ class ViewPort(pygame.sprite.Sprite):
         except AssertionError:
             raise
 
-        super(ViewPort, self).add_internal(group)
+        super().add_internal(group)
         self.parent = group
 
     def follow(self, sprite):
@@ -296,7 +278,7 @@ class ViewPort(pygame.sprite.Sprite):
         if sprite is None:
             self.following = None
         else:
-            assert (isinstance(sprite, CastleBatsSprite))
+            assert (isinstance(sprite, ShapeSprite))
             self.following = sprite
 
     def center(self):
@@ -311,17 +293,19 @@ class ViewPort(pygame.sprite.Sprite):
         if self.camera_vector:
             self.map_layer.center(self.camera_vector)
 
-    def update(self, delta):
-        self.center()
-
     def draw(self, surface, surface_rect):
         if not surface_rect == self.rect:
             self.set_rect(surface_rect)
 
+        self.center()
+
         camera = self.rect.copy()
         camera.center = self.camera_vector
 
-        xx, yy = -self.camera_vector + surface_rect.center - surface_rect.topleft + (0, 10)
+        xx, yy = -self.camera_vector + surface_rect.center - surface_rect.topleft + (0, 18)
+
+        xx += self.rect.left
+        yy += self.rect.top
 
         to_draw = list()
         if self.draw_sprites:
@@ -330,37 +314,38 @@ class ViewPort(pygame.sprite.Sprite):
             map_height = self.map_height
 
             for sprite in self.parent.sprites():
-                if isinstance(sprite, CastleBatsSprite):
+                if isinstance(sprite, ShapeSprite):
                     sprite.update_image()
+
+                    # ox, oy = self.map_layer.get_center_offset()
+                    # new_rect = sprite.rect.move(ox, oy)
+                    # new_rect.y = map_height - new_rect.y - new_rect.height
+                    #
+                    # print(new_rect)
+                    #
+                    # to_draw_append((sprite.image, new_rect, 1))
+
                     new_rect = sprite.rect.copy()
                     new_rect.y = map_height - new_rect.y - new_rect.height
-
                     # if sprite.axis:
                     #     new_rect.move_ip(*sprite.axis)
-
                     if camera_collide(new_rect):
                         new_rect = new_rect.move(xx, yy)
                         to_draw_append((sprite.image, new_rect, 1))
 
         if self.draw_map and self.draw_sprites:
-            self.map_layer.draw(surface, to_draw)
-
-        elif self.draw_sprites:
-            for s, r, l in to_draw:
-                surface.blit(s, r)
+            self.map_layer.draw(surface, self.rect, surfaces=to_draw)
 
         elif self.draw_map:
-            self.map_layer.draw(surface)
+            self.map_layer.draw(surface, self.rect)
 
         if self.draw_overlay:
+            from pymunk.pygame_util import draw
             overlay = self.overlay_surface
             overlay.set_clip(camera)
             overlay.fill((0, 0, 0))
-            # pymunk_draw(overlay, self.parent.space)
+            draw(overlay, self.parent.space)
             surface.blit(overlay, (xx, yy))
-
-        # TODO: dirty updates
-        return self.rect
 
 
 def make_rect(i):
@@ -389,5 +374,3 @@ def make_feet(rect):
     body = pymunk.Body(mass, inertia)
     shape = pymunk.Circle(body, radius, (0, 0))
     return body, shape
-
-

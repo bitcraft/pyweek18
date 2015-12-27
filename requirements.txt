@@ -4,3 +4,4 @@ pymunk
 pymunktmx
 pytmx
 pillow
+git+http://github.com/bitcraft/pyscroll.git

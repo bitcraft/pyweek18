@@ -7,12 +7,12 @@ BUTTON_UP = 256
 BUTTON_DOWN = 512
 
 # for fighting style games
-BUTTON_PUNCH = 7  # don't assign controls to this -- for interal use
+BUTTON_PUNCH = 7  # don't assign controls to this -- for internal use
 BUTTON_LOW_PUNCH = 1
 BUTTON_MED_PUNCH = 2
 BUTTON_HI_PUNCH = 4
 
-BUTTON_KICK = 56  # don't assign controls to this -- for interal use
+BUTTON_KICK = 56  # don't assign controls to this -- for internal use
 BUTTON_LOW_KICK = 8
 BUTTON_MED_KICK = 16
 BUTTON_HI_KICK = 32
@@ -60,5 +60,4 @@ P2_RIGHT = 8
 P2_ACTION1 = 16
 P2_ACTION2 = 32
 
-KEYNAMES = {1: "up", 2: "down", 4: "left", 8: "right", 16: "action0",
-            32: "action1"}
+KEYNAMES = {1: "up", 2: "down", 4: "left", 8: "right", 16: "action0", 32: "action1"}

@@ -1,19 +1,15 @@
 import logging
 
 import pygame
-import threading
-
+from castlebats import scheduler
+from castlebats import state_manager
 from . import ui
-from . import config
-from castlebats.level import Level
 
-logger = logging.getLogger('castlebats.game')
+logger = logging.getLogger(__name__)
 
 
-class Game(object):
+class Game:
     def __init__(self):
-        self.states = []
-        self.states.append(Level())
         self.score = 0
         self.lives = 0
         self.health = 0
@@ -22,14 +18,11 @@ class Game(object):
         self.item = None
 
     def run(self):
-        clock = pygame.time.Clock()
         screen = pygame.display.get_surface()
         screen_size = screen.get_size()
         surface = pygame.Surface([int(i / 2) for i in screen_size])
         scale = pygame.transform.scale
         flip = pygame.display.flip
-        target_fps = config.getint('display', 'target-fps')
-        running = True
 
         level_rect = surface.get_rect()
         level_rect.inflate_ip(0, -level_rect.height * .20)
@@ -44,46 +37,31 @@ class Game(object):
         s.rect.topleft = (0, 0)
         hud_group.add(s)
 
-        state = self.states[0]
-        state.enter()
+        # do not remove!
+        import castlebats.level_state
+        import castlebats.pause_state
 
-        flip_event = threading.Event()
-        update_lock = threading.Lock()
+        state_manager.push_state("Level")
+        # state_manager.push_state("Pause")
 
-        def flip_in_thread():
-            while 1:
-                flip_event.wait()
-                flip()
-                flip_event.clear()
-
-        # draw_thread = threading.Thread(None, flip_in_thread)
-        # draw_thread.setDaemon(True)
-        # draw_thread.start()
-        #
-        # import gc
-        # gc.disable()
-
+        running = True
         try:
             while running:
-                dt = clock.tick(120)
-                # dt = clock.tick()
-                state = self.states[0]
-                state.handle_input()
+                dt = scheduler.tick()
 
-                with update_lock:
-                    state.update(dt)
-                    hud_group.update()
-                    state.draw(surface, level_rect)
-                    hud_group.draw(surface)
-                    scale(surface, screen_size, screen)
+                state = state_manager.current_state
 
-                # flip_event.set()
+                if state is None:
+                    running = False
+                    break
+
+                state.update(dt)
+                state.draw(surface, level_rect)
+
+                hud_group.draw(surface)
+                scale(surface, screen_size, screen)
+
                 flip()
-
-                running = state.running
-                self.score += 1
 
         except KeyboardInterrupt:
             running = False
-
-        state.exit()

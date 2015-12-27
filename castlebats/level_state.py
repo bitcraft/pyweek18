@@ -1,15 +1,16 @@
+import logging
 import threading
 import pygame
-from pygame.constants import QUIT, KEYDOWN, K_ESCAPE
 import pymunk
+import pyscroll
+from pygame.constants import QUIT, KEYDOWN, K_ESCAPE
 from pymunktmx import load_shapes
-import renderer
-import logging
-from castlebats import config, resources, playerinput, sprite, collisions, models, hero, zombie
 
+from castlebats import config, resources, playerinput, sprite, collisions, models, hero
+from castlebats.lib2.state import State
+from castlebats import state_manager
 
-logger = logging.getLogger('castlebats.game')
-
+logger = logging.getLogger(__name__)
 
 
 def ignore_gravity(body, gravity, damping, dt):
@@ -18,23 +19,30 @@ def ignore_gravity(body, gravity, damping, dt):
     return None
 
 
-class Level(object):
+def get_shape_rect(shape):
+    shape.cache_bb()
+    bb = shape.bb
+    rect = pygame.Rect((bb.left, bb.top, bb.right - bb.left, bb.top - bb.bottom))
+    rect.normalize()
+    return rect
+
+
+class Level(State):
     def __init__(self):
         self.time = 0
         self.death_reset = 0
         self.running = False
-        self.models = set()
         self.hero = None
-        self.spawn_zombie = 0
-        self.models_lock = threading.Lock()
-        self.hud_group = pygame.sprite.Group()
-        self._add_queue = set()
-        self._remove_queue = set()
         self.keyboard_input = playerinput.KeyboardPlayerInput()
 
+        self.models = set()
+        self.models_lock = threading.Lock()
+        self._add_queue = set()
+        self._remove_queue = set()
+
         self.tmx_data = resources.maps['level0']
-        self.map_data = renderer.TiledMapData(self.tmx_data)
-        self.map_height = self.map_data.height * self.map_data.tileheight
+        self.map_data = pyscroll.TiledMapData(self.tmx_data)
+        self.map_height = self.map_data.map_size[1] * self.map_data.tile_size[1]
 
         for layer in self.tmx_data.objectgroups:
             # manually set all objects in the traps layer to trap collision type
@@ -67,6 +75,8 @@ class Level(object):
         # and add platforms
         shapes = load_shapes(self.tmx_data, self.space, resources.level_xml)
         for name, shape in shapes.items():
+            print(name, shape.friction)
+            shape.friction = 1
             logger.info("loaded shape: %s", name)
             if name.startswith('trap'):
                 shape.collision_type = collisions.trap
@@ -89,34 +99,36 @@ class Level(object):
 
     def handle_moving_platform(self, shape):
         logger.info('loading moving platform %s', shape)
-        # assert(not shape.body.is_static)
+
+        space = self.space
+
+        model = models.BasicModel()
 
         shape.layers = 3
         shape.collision_type = 0
         shape.body.velocity_func = ignore_gravity
         shape.body.moment = pymunk.inf
 
-        shape.cache_bb()
-        bb = shape.bb
-        rect = pygame.Rect((bb.left, bb.top,
-                            bb.right - bb.left, bb.top - bb.bottom))
-        rect.normalize()
+        model.attach_thing(shape.body)
+        model.attach_thing(shape)
 
         height = 100
         anchor1 = shape.body.position
         anchor2 = shape.body.position - (0, height)
 
-        joint = pymunk.GrooveJoint(self.space.static_body, shape.body,
+        joint = pymunk.GrooveJoint(space.static_body, shape.body,
                                    anchor1, anchor2, (0, 0))
+        model.connect_bodies(joint, space.static_body, shape.body)
 
-        spring = pymunk.DampedSpring(self.space.static_body, shape.body,
+        spring = pymunk.DampedSpring(space.static_body, shape.body,
                                      anchor2, (0, 0), height, 10000, 50)
-
-        self.space.add(joint, spring)
+        model.connect_bodies(spring, space.static_body, shape.body)
 
         gids = [self.tmx_data.map_gid(i)[0][0] for i in (1, 2, 3)]
         colorkey = (255, 0, 255)
         tile_width = self.tmx_data.tilewidth
+
+        rect = get_shape_rect(shape)
 
         s = pygame.Surface((rect.width, rect.height))
         s.set_colorkey(colorkey)
@@ -132,10 +144,8 @@ class Level(object):
 
         spr = sprite.BoxSprite(shape)
         spr.original_surface = s
-        m = models.Basic()
-        m.sprite = spr
 
-        self.add_model(m)
+        return model
 
     def handle_hanging(self, shape):
         logger.info('loading hanging %s', shape)
@@ -162,14 +172,10 @@ class Level(object):
         s = pygame.Surface((rect.width, rect.height))
         s.fill((255, 255, 255))
 
-        print resources.images.keys()
-
         spr = sprite.BoxSprite(shape)
         spr.original_surface = resources.images['hanging']
-        m = models.Basic()
+        m = models.BasicModel()
         m.sprite = spr
-
-        self.add_model(m)
 
     def new_hero(self):
         typed_objects = [obj for obj in self.tmx_data.objects
@@ -186,30 +192,7 @@ class Level(object):
         self.hero.position = hero_coords
         self.add_model(self.hero)
         self.vp.follow(self.hero.sprite)
-        self.spawn_zombie = False
         resources.sounds['hero-spawn'].play()
-
-    def spawn_enemy(self, name):
-        if not self.hero:
-            return
-
-        hero_position = self.hero.position
-
-        if name == 'zombie':
-            zomb = zombie.build(self.space)
-            zomb.position = hero_position + (300, 0)
-            self.add_model(zomb)
-
-    def translate(self, coords):
-        return pymunk.Vec2d(coords[0], self.map_height - coords[1])
-
-    def enter(self):
-        self.running = True
-        resources.play_music('dungeon')
-
-    def exit(self):
-        self.running = False
-        pygame.mixer.music.stop()
 
     def add_model(self, model):
         if self.models_lock.acquire(False):
@@ -233,15 +216,21 @@ class Level(object):
         else:
             self._remove_queue.add(model)
 
+    def translate(self, coords):
+        return pymunk.Vec2d(coords[0], self.map_height - coords[1])
+
+    def resume(self):
+        self.running = True
+        resources.play_music('dungeon')
+
+    def shutdown(self):
+        self.running = False
+        pygame.mixer.music.stop()
+
     def draw(self, surface, rect):
-        # draw the world
         self.vpgroup.draw(surface, rect)
 
-        return rect
-
     def handle_input(self):
-        pressed = pygame.key.get_pressed()
-
         for event in pygame.event.get():
             if event.type == QUIT:
                 self.running = False
@@ -261,8 +250,9 @@ class Level(object):
             for cmd in self.keyboard_input.get_held():
                 self.hero.process(cmd)
 
-    def update(self, dt):
-        seconds = dt / 1000.
+    def update(self, seconds):
+        self.handle_input()
+
         self.time += seconds
 
         step_amt = seconds / 3.
@@ -274,24 +264,10 @@ class Level(object):
         if self.time - self.death_reset >= 5 and not self.hero:
             self.new_hero()
 
-        # int_time = int(self.time)
-        # if int_time % 3 == 0 and self.spawn_zombie == 0:
-        #     self.spawn_zombie = 1
-        # elif int_time % 3 == 1:
-        #     self.spawn_zombie = 0
-        #
-        # if self.spawn_zombie == 1:
-        #     self.spawn_enemy('zombie')
-        #     self.spawn_zombie = 2
-
-        self.vpgroup.update(dt)
-
         with self.models_lock:
             for model in self.models:
-                if model.alive:
-                    model.update(dt)
+                model.physics_hook()
 
-                # do not add else here
                 if not model.alive:
                     self.remove_model(model)
 
@@ -303,3 +279,10 @@ class Level(object):
 
         self._remove_queue.clear()
         self._add_queue.clear()
+
+        if not self.running:
+            state_manager.pop_state()
+
+
+# add this level to the global state manager
+state_manager.register_state(Level)

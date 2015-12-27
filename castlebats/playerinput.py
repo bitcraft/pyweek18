@@ -9,9 +9,10 @@ provides a couple nice features:
     axises are corrected so that axises act 'naturally' if pressed in
         opposite directions ie: left and right pressed simultaneously
 """
-from pygame.locals import *
-from .buttons import *
 import pygame
+from pygame.locals import *
+
+from .buttons import *
 
 get_pressed = pygame.key.get_pressed
 

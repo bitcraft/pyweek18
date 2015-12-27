@@ -1,9 +1,10 @@
+import logging
 import os
 
-from pytmx.util_pygame import load_pygame
 import pygame
-import logging
-logger = logging.getLogger('castlebats.resources')
+from pytmx.util_pygame import load_pygame
+
+logger = logging.getLogger(__name__)
 
 __all__ = ['sounds', 'images', 'music', 'maps', 'load', 'play_music']
 

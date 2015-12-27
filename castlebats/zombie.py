@@ -1,13 +1,15 @@
 import itertools
-import pygame
-import pymunk
-from . import models
-from . import collisions
-from . import config
-from .sprite import CastleBatsSprite, make_body, make_feet
 import logging
 
-logger = logging.getLogger('castlebats.zombie')
+import pygame
+import pymunk
+
+from . import collisions
+from . import config
+from . import models
+from .sprite import ShapeSprite, make_body, make_feet
+
+logger = logging.getLogger(__name__)
 
 
 class Model(models.UprightModel):
@@ -20,7 +22,7 @@ class Model(models.UprightModel):
     LEFT = -1
 
     def __init__(self):
-        super(Model, self).__init__()
+        super().__init__()
         self.sensor = None
         self.move_power = config.getint('zombie', 'move')
         self.jump_power = config.getint('zombie', 'jump')
@@ -29,29 +31,29 @@ class Model(models.UprightModel):
     def kill(self):
         space = self.sprite.shape.body._space
         space.remove(self.sensor)
-        super(Model, self).kill()
+        super().kill()
 
-    def update(self, dt):
+    def physics_hook(self, dt):
         if self.motor.rate == 0:
             self.accelerate(self.sprite_direction)
 
 
-class Sprite(CastleBatsSprite):
+class Sprite(ShapeSprite):
     sprite_sheet = 'zombie-spritesheet'
     name = 'zombie'
     """ animation def:
         (animation name, ((frame duration, (x, y, w, h, x offset, y offset)...)
     """
     image_animations = [
-        ('idle',    100, ((27,  0, 28, 48, 0, 2), )),
-        ('walking', 180, ((27,  0, 28, 48, 0, 2),
-                          (55,  0, 28, 48, 0, 2),
-                          (82,  0, 28, 48, 0, 2),
+        ('idle', 100, ((27, 0, 28, 48, 0, 2),)),
+        ('walking', 180, ((27, 0, 28, 48, 0, 2),
+                          (55, 0, 28, 48, 0, 2),
+                          (82, 0, 28, 48, 0, 2),
                           (108, 0, 28, 48, 0, 2))),
     ]
 
     def __init__(self, shape):
-        super(Sprite, self).__init__(shape)
+        super().__init__(shape)
         self.load_animations()
         self.change_state('walking')
 
@@ -125,7 +127,7 @@ def build(space):
     feet_shape.elasticity = 0
     feet_shape.layers = layers
     feet_shape.friction = pymunk.inf
-    feet_sprite = CastleBatsSprite(feet_shape)
+    feet_sprite = ShapeSprite(feet_shape)
     space.add(feet_body, feet_shape)
 
     # jump/collision sensor
@@ -144,7 +146,7 @@ def build(space):
     # motor and joint for feet
     motor = pymunk.SimpleMotor(body_body, feet_body, 0.0)
     joint = pymunk.PivotJoint(
-        body_body, feet_body, feet_body.position, (0, 0))
+            body_body, feet_body, feet_body.position, (0, 0))
     space.add(motor, joint)
 
     # the model is used to gameplay logic

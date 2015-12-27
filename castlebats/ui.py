@@ -1,4 +1,5 @@
 import pygame
+
 from . import resources
 
 __all__ = ['TextSprite']
@@ -6,7 +7,7 @@ __all__ = ['TextSprite']
 
 class TextSprite(pygame.sprite.DirtySprite):
     def __init__(self, text, color=None, bgcolor=None):
-        super(TextSprite, self).__init__()
+        super().__init__()
         self._text_object = None
         self._text = None
         self._color = None
@@ -18,12 +19,6 @@ class TextSprite(pygame.sprite.DirtySprite):
         self.rect = pygame.Rect(0, 0, 1, 1)
         self.font = pygame.font.Font(resources.fonts['default'], 12)
         self.update_image()
-
-    def update(self, dt=None):
-        text = str(self._text_object)
-        if not text == self._text:
-            self._text = text
-            self.update()
 
     def update_image(self):
         self.image = self.font.render(self._text, 0, self._color, self._bgcolor)
