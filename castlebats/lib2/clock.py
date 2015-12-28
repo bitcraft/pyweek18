@@ -292,9 +292,8 @@ class Scheduler:
 
             self._current_executing_item = None
 
-            if item.interval:
-                # callbacks can unschedule themselves by returning false
-                replace = not retval == False
+            if item.interval and not retval == False:
+                replace = True
 
                 item.next_ts = item.last_ts + item.interval
                 item.last_ts = now
